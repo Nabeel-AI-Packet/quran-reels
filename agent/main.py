@@ -60,7 +60,29 @@ def video_name(post_id, variant):
 
 
 def video_url(post_id, variant):
-    return f"https://raw.githubusercontent.com/{config.REPO}/{config.BRANCH}/media/{video_name(post_id, variant)}"
+    return raw_url(video_name(post_id, variant))
+
+
+def _pushed_commit(rel):
+    """The pushed commit that holds this file, so the link never depends on the branch cache."""
+    try:
+        out = subprocess.run(["git", "log", "-1", "--format=%H", "--", rel], cwd=ROOT,
+                             capture_output=True, text=True, timeout=30).stdout.strip()
+        ok = subprocess.run(["git", "cat-file", "-e", f"{out}:{rel}"], cwd=ROOT,
+                            capture_output=True, timeout=30).returncode == 0
+        return out if out and ok else None
+    except Exception:
+        return None
+
+
+def url_ready(url):
+    """True when the video can actually be downloaded from the link (what Buffer does)."""
+    try:
+        r = requests.get(url, headers={"Range": "bytes=0-1023"}, timeout=30, stream=True)
+        r.close()
+        return r.status_code in (200, 206)
+    except requests.RequestException:
+        return False
 
 
 # ---------- make ----------
@@ -245,6 +267,13 @@ def buffer_job(state, job, url, kind="video"):
             if p != "all" and p not in chans:
                 done[p] = "not connected in Buffer"
     chans = job["connected"]
+    if not job.get("posts_started") and not url_ready(url):
+        job["url_waits"] = job.get("url_waits", 0) + 1     # not online yet: try again next run
+        if job["url_waits"] < 6:
+            save(STATE, state)
+            return None
+        return [f"⚠️ The video could not be reached online, so nothing was posted. Link: {url}"]
+    job["posts_started"] = True
     if job["platforms"] == ["all"]:
         job["platforms"] = [p for p in buffer.ORDER if p in chans
                             and not (kind == "image" and p in buffer.VIDEO_ONLY)] or ["instagram"]
@@ -312,7 +341,8 @@ def git_save(paths, message):
 
 
 def raw_url(name):
-    return f"https://raw.githubusercontent.com/{config.REPO}/{config.BRANCH}/media/{name}"
+    ref = _pushed_commit(f"media/{name}") or config.BRANCH
+    return f"https://raw.githubusercontent.com/{config.REPO}/{ref}/media/{name}"
 
 
 CLIPS = os.path.join(ROOT, "assets", "clips")
