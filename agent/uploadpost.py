@@ -16,7 +16,7 @@ def _find_url(data):
     """Digs the Instagram post link out of a response, wherever it sits."""
     if isinstance(data, dict):
         for k, v in data.items():
-            if k == "url" and isinstance(v, str) and "instagram" in v:
+            if k == "url" and isinstance(v, str) and v.startswith("http"):
                 return v
             found = _find_url(v)
             if found:
@@ -29,11 +29,11 @@ def _find_url(data):
     return ""
 
 
-def publish_reel(video_path, caption, post_id):
+def publish_reel(video_path, caption, post_id, platforms=("instagram",)):
     with open(video_path, "rb") as f:
         r = requests.post(f"{API}/upload", headers={**_headers(), "Idempotency-Key": post_id}, data={
             "user": config.UPLOADPOST_USER,
-            "platform[]": "instagram",
+            "platform[]": list(platforms),
             "title": caption,
             "media_type": "REELS",
             "share_to_feed": "true",
@@ -42,6 +42,8 @@ def publish_reel(video_path, caption, post_id):
     data = r.json() if r.content else {}
     if r.status_code == 429:
         raise RuntimeError("Upload-Post monthly limit reached. Upgrade the plan or wait for next month.")
+    if r.status_code == 403:
+        raise RuntimeError(f"Upload-Post plan does not allow this (TikTok needs a paid plan): {str(data)[:300]}")
     if not r.ok or not data.get("success", False):
         raise RuntimeError(f"Upload-Post refused the post ({r.status_code}): {str(data)[:500]}")
     link = _find_url(data)

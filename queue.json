@@ -1,62 +1,258 @@
 [
   {
-    "id": "r01", "key": "94:5-6", "status": "queued",
+    "id": "r01",
+    "key": "94:5-6",
+    "status": "queued",
     "hook": "Feeling overwhelmed? Listen.",
     "caption_en": "Ease is promised twice, so it never comes alone. Whatever you're carrying today, relief is already on its way.",
     "caption_pl": "Ulga obiecana jest dwa razy. Cokolwiek dziś dźwigasz, ulga już nadchodzi."
   },
   {
-    "id": "r02", "key": "2:286", "status": "queued",
+    "id": "f02",
+    "key": "113:1-5",
+    "status": "queued",
+    "hook": "Surah Al-Falaq",
+    "caption_en": "Seek refuge in the Lord of daybreak. Recite it every morning and evening.",
+    "caption_pl": "Szukaj schronienia u Pana świtu. Recytuj ją każdego ranka i wieczoru."
+  },
+  {
+    "id": "r02",
+    "key": "2:286",
+    "status": "queued",
     "hook": "You can carry this.",
     "caption_en": "Whatever you face today, Allah knows you were made able to bear it.",
     "caption_pl": "Cokolwiek dziś przeżywasz, Allah wie, że jesteś w stanie to unieść."
   },
   {
-    "id": "r03", "key": "13:28", "status": "queued",
+    "id": "m01",
+    "key": "67:1-5",
+    "status": "queued",
+    "hook": "Surah Al-Mulk · Part 1 of 6",
+    "caption_en": "Surah Al-Mulk, part 1 of 6. A surah to recite every night before sleep.",
+    "caption_pl": "Sura Al-Mulk, część 1 z 6. Sura do recytowania każdej nocy przed snem."
+  },
+  {
+    "id": "f07",
+    "key": "93:1-11",
+    "status": "queued",
+    "hook": "Surah Ad-Duha",
+    "caption_en": "Your Lord has not forsaken you. Listen to the whole surah.",
+    "caption_pl": "Twój Pan cię nie opuścił. Posłuchaj całej sury."
+  },
+  {
+    "id": "r03",
+    "key": "13:28",
+    "status": "queued",
     "hook": "Where hearts find rest",
     "caption_en": "Restless lately? Hearts find peace in the remembrance of Allah.",
     "caption_pl": "Niespokojne serce? Spokój znajduje się w pamiętaniu o Allahu."
   },
   {
-    "id": "r04", "key": "2:186", "status": "queued",
+    "id": "m02",
+    "key": "67:6-11",
+    "status": "queued",
+    "hook": "Surah Al-Mulk · Part 2 of 6",
+    "caption_en": "Surah Al-Mulk, part 2 of 6. A surah to recite every night before sleep.",
+    "caption_pl": "Sura Al-Mulk, część 2 z 6. Sura do recytowania każdej nocy przed snem."
+  },
+  {
+    "id": "f10",
+    "key": "2:255",
+    "status": "queued",
+    "hook": "Ayat al-Kursi",
+    "caption_en": "The greatest verse in the Quran. Recite it before you sleep.",
+    "caption_pl": "Najwspanialszy werset Koranu. Recytuj go przed snem."
+  },
+  {
+    "id": "r04",
+    "key": "2:186",
+    "status": "queued",
     "hook": "He is closer than you think",
     "caption_en": "Your dua is heard, even the ones you never say out loud.",
     "caption_pl": "Twoja modlitwa jest słyszana, nawet ta niewypowiedziana na głos."
   },
   {
-    "id": "r05", "key": "39:53", "status": "queued",
+    "id": "f01",
+    "key": "1:1-7",
+    "status": "queued",
+    "hook": "Al-Fatiha · The Opening",
+    "caption_en": "The surah we recite in every prayer. Listen with your heart today.",
+    "caption_pl": "Sura, którą recytujemy w każdej modlitwie. Posłuchaj jej dziś sercem."
+  },
+  {
+    "id": "m03",
+    "key": "67:12-15",
+    "status": "queued",
+    "hook": "Surah Al-Mulk · Part 3 of 6",
+    "caption_en": "Surah Al-Mulk, part 3 of 6. A surah to recite every night before sleep.",
+    "caption_pl": "Sura Al-Mulk, część 3 z 6. Sura do recytowania każdej nocy przed snem."
+  },
+  {
+    "id": "r05",
+    "key": "39:53",
+    "status": "queued",
     "hook": "It's not too late.",
     "caption_en": "No mistake is bigger than His mercy. Come back to Him.",
     "caption_pl": "Żaden błąd nie jest większy niż Jego miłosierdzie. Wróć do Niego."
   },
   {
-    "id": "r06", "key": "65:2-3", "status": "queued",
+    "id": "f03",
+    "key": "114:1-6",
+    "status": "queued",
+    "hook": "Surah An-Nas",
+    "caption_en": "Seek refuge in the Lord of mankind from every whisper of evil.",
+    "caption_pl": "Szukaj schronienia u Pana ludzi przed każdym złym podszeptem."
+  },
+  {
+    "id": "m04",
+    "key": "67:16-20",
+    "status": "queued",
+    "hook": "Surah Al-Mulk · Part 4 of 6",
+    "caption_en": "Surah Al-Mulk, part 4 of 6. A surah to recite every night before sleep.",
+    "caption_pl": "Sura Al-Mulk, część 4 z 6. Sura do recytowania każdej nocy przed snem."
+  },
+  {
+    "id": "r06",
+    "key": "65:2-3",
+    "status": "queued",
     "hook": "Stuck with no way out?",
     "caption_en": "Provision can come from where you never expected. Trust Him and keep going.",
     "caption_pl": "Zaopatrzenie może przyjść stamtąd, skąd się nie spodziewasz. Zaufaj Mu i idź dalej."
   },
   {
-    "id": "r07", "key": "2:152", "status": "queued",
+    "id": "f04",
+    "key": "103:1-3",
+    "status": "queued",
+    "hook": "Surah Al-Asr · Time",
+    "caption_en": "Three verses about time, faith and patience. Don't let today pass in loss.",
+    "caption_pl": "Trzy wersety o czasie, wierze i cierpliwości. Nie pozwól, by ten dzień minął na stracie."
+  },
+  {
+    "id": "m05",
+    "key": "67:21-25",
+    "status": "queued",
+    "hook": "Surah Al-Mulk · Part 5 of 6",
+    "caption_en": "Surah Al-Mulk, part 5 of 6. A surah to recite every night before sleep.",
+    "caption_pl": "Sura Al-Mulk, część 5 z 6. Sura do recytowania każdej nocy przed snem."
+  },
+  {
+    "id": "r07",
+    "key": "2:152",
+    "status": "queued",
     "hook": "Remember Him today",
     "caption_en": "Remember Him, and He remembers you. A simple dhikr can change your whole day.",
     "caption_pl": "Pamiętaj o Nim, a On będzie pamiętał o Tobie. Jeden dhikr może zmienić cały dzień."
   },
   {
-    "id": "r08", "key": "2:153", "status": "queued",
+    "id": "f06",
+    "key": "97:1-5",
+    "status": "queued",
+    "hook": "Surah Al-Qadr",
+    "caption_en": "The Night of Decree: better than a thousand months.",
+    "caption_pl": "Noc Przeznaczenia: lepsza niż tysiąc miesięcy."
+  },
+  {
+    "id": "m06",
+    "key": "67:26-30",
+    "status": "queued",
+    "hook": "Surah Al-Mulk · Part 6 of 6",
+    "caption_en": "Surah Al-Mulk, part 6 of 6. A surah to recite every night before sleep.",
+    "caption_pl": "Sura Al-Mulk, część 6 z 6. Sura do recytowania każdej nocy przed snem."
+  },
+  {
+    "id": "r08",
+    "key": "2:153",
+    "status": "queued",
     "hook": "Your two tools for hard days",
     "caption_en": "Sabr and salah: seek help through patience and prayer.",
     "caption_pl": "Sabr i salah: szukaj pomocy w cierpliwości i modlitwie."
   },
   {
-    "id": "r09", "key": "40:60", "status": "queued",
+    "id": "f08",
+    "key": "94:1-8",
+    "status": "queued",
+    "hook": "Surah Ash-Sharh · in full",
+    "caption_en": "Did We not expand your chest? The full surah of comfort.",
+    "caption_pl": "Czyż nie otworzyliśmy twojej piersi? Cała sura pocieszenia."
+  },
+  {
+    "id": "f05",
+    "key": "108:1-3",
+    "status": "queued",
+    "hook": "Surah Al-Kawthar",
+    "caption_en": "The shortest surah, and a reminder of Allah's abundant gifts.",
+    "caption_pl": "Najkrótsza sura i przypomnienie o obfitych darach Allaha."
+  },
+  {
+    "id": "r09",
+    "key": "40:60",
+    "status": "queued",
     "hook": "Have you asked Him yet?",
     "caption_en": "He invites you to ask. Make dua now, before you scroll on.",
     "caption_pl": "On zaprasza, byś Go prosił. Zrób du'a teraz, zanim przewiniesz dalej."
   },
   {
-    "id": "r10", "key": "112:1-4", "status": "queued",
+    "id": "f09",
+    "key": "110:1-3",
+    "status": "queued",
+    "hook": "Surah An-Nasr",
+    "caption_en": "When the help of Allah comes, glorify your Lord and seek His forgiveness.",
+    "caption_pl": "Gdy przychodzi pomoc Allaha, wysławiaj swego Pana i proś Go o przebaczenie."
+  },
+  {
+    "id": "k01",
+    "key": "18:1-5",
+    "status": "queued",
+    "hook": "Surah Al-Kahf · Part 1",
+    "caption_en": "It's Friday: begin Surah Al-Kahf with us.",
+    "caption_pl": "Jest piątek: zacznij z nami Surę Al-Kahf."
+  },
+  {
+    "id": "r10",
+    "key": "112:1-4",
+    "status": "queued",
     "hook": "Four verses, a third of the Quran",
     "caption_en": "Surah Al-Ikhlas: the oneness of Allah in four short verses. Share it with someone who needs a reminder.",
     "caption_pl": "Sura Al-Ikhlas: jedność Allaha w czterech krótkich wersetach. Udostępnij komuś, kto potrzebuje przypomnienia."
+  },
+  {
+    "id": "f11",
+    "key": "2:285-286",
+    "status": "queued",
+    "hook": "The last two verses of Al-Baqarah",
+    "caption_en": "Recite them at night; they are enough for you.",
+    "caption_pl": "Recytuj je w nocy, one ci wystarczą."
+  },
+  {
+    "id": "rh1",
+    "key": "55:1-13",
+    "status": "queued",
+    "hook": "Surah Ar-Rahman · Part 1",
+    "caption_en": "Which of the favours of your Lord will you deny?",
+    "caption_pl": "Którą z łask waszego Pana będziecie zaprzeczać?"
+  },
+  {
+    "id": "ys1",
+    "key": "36:1-12",
+    "status": "queued",
+    "hook": "Surah Ya-Sin · Part 1",
+    "caption_en": "The heart of the Quran. Listen to the opening of Ya-Sin.",
+    "caption_pl": "Serce Koranu. Posłuchaj początku Sury Ja-Sin."
+  },
+  {
+    "id": "a01",
+    "key": "3:190-191",
+    "status": "queued",
+    "hook": "Signs for those who reflect",
+    "caption_en": "In the heavens and the earth are signs for people of understanding.",
+    "caption_pl": "W niebiosach i na ziemi są znaki dla ludzi rozumnych."
+  },
+  {
+    "id": "h01",
+    "key": "59:22-24",
+    "status": "queued",
+    "hook": "The Names of Allah",
+    "caption_en": "He is Allah: the closing verses of Al-Hashr and His beautiful names.",
+    "caption_pl": "On jest Allahem: końcowe wersety Sury Al-Haszr i Jego piękne imiona."
   }
 ]

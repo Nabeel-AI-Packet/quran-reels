@@ -34,8 +34,9 @@ def send_for_approval(video_path, caption, post_id):
     return msg["message_id"]
 
 
-def get_updates(offset):
-    return _api("getUpdates", data={"offset": offset, "timeout": 0,
+def get_updates(offset, wait=0):
+    """wait > 0 keeps the connection open until a message or button press arrives (long polling)."""
+    return _api("getUpdates", data={"offset": offset, "timeout": wait,
                                     "allowed_updates": json.dumps(["message", "callback_query"])})
 
 

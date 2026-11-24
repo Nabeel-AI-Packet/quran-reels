@@ -1,0 +1,33 @@
+# Renders sample Reels into previews/ (no Telegram, no posting).
+name: preview
+on:
+  push:
+    paths: ['previews/request.txt']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: reel-agent
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-hosny-amiri fonts-inter libraqm0 fontconfig > /dev/null
+          pip install -q requests pillow
+      - name: Render
+        run: |
+          mapfile -t specs < previews/request.txt
+          python -m agent.preview "${specs[@]}"
+          rm previews/request.txt
+      - name: Save
+        run: |
+          git config user.name "reel-agent"
+          git config user.email "reel-agent@users.noreply.github.com"
+          git add -A previews
+          git diff --cached --quiet || (git commit -q -m "Preview Reels" && git pull -q --rebase && git push -q)

@@ -1,8 +1,8 @@
-# Every 15 minutes: read Telegram buttons, post approved Reels, and design the day's Reel
+# Every 10 minutes (each run listens to Telegram for 9 minutes): read Telegram buttons, post approved Reels, and design the day's Reel
 name: poll
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -12,7 +12,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: Install tools
@@ -30,6 +30,7 @@ jobs:
           POSTER: ${{ vars.POSTER }}
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          POLL_MINUTES: '9'
         run: python -m agent.main poll
       - name: Save queue, state and videos
         if: always()

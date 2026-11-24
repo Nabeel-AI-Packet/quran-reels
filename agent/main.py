@@ -8,6 +8,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import traceback
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -32,11 +33,11 @@ def save(path, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def build_caption(item, reciter):
+def build_caption(item, reciter, reference):
     return "\n\n".join([
         item["caption_en"],
         item["caption_pl"],
-        f"📖 {quran.reference(item['key'])}\n🎙 {reciter}\n🌐 {config.TRANSLATION_CREDIT}",
+        f"📖 {reference}\n🎙 {reciter}\n🌐 {config.TRANSLATION_CREDIT}",
         config.HASHTAGS,
     ])
 
@@ -52,6 +53,7 @@ def video_url(post_id, variant):
 # ---------- make ----------
 
 def make(state, variant=0, item=None):
+    """variant counts redesigns of the same Reel: each one uses the next Canva background."""
     if not config.TELEGRAM_CHAT_ID:
         raise RuntimeError("Add the TELEGRAM_CHAT_ID secret first (message the bot, then run poll).")
     queue = load(QUEUE, [])
@@ -62,22 +64,29 @@ def make(state, variant=0, item=None):
         if item is None:
             telegram.send_text("The queue is empty. Ask Claude for the next batch of Reels.")
             return
-    reciter = item.get("reciter", config.DEFAULT_RECITER)
+        state["reciter_i"] = state.get("reciter_i", -1) + 1
+        state["bg_i"] = state.get("bg_i", -1) + 1
+    names = list(config.RECITERS)
+    reciter = item.get("reciter") or names[state.get("reciter_i", 0) % len(names)]
     text = quran.fetch_text(item["key"])
     os.makedirs(MEDIA, exist_ok=True)
     _remove_video(item["id"])
     out = os.path.join(MEDIA, video_name(item["id"], variant))
     with tempfile.TemporaryDirectory() as tmp:
         audio = os.path.join(tmp, "recitation.mp3")
-        seconds = quran.fetch_audio(item["key"], reciter, audio)
-        verse = {**text, "reference": quran.reference(item["key"]), "hook": item["hook"],
-                 "reciter": reciter, "handle": config.PAGE_HANDLE}
-        designer.render(verse, out, audio_path=audio, verse_seconds=seconds + 0.8, variant=variant)
-    caption = build_caption(item, reciter)
-    msg_id = telegram.send_for_approval(out, f"New Reel ready ({quran.reference(item['key'])})\n\n{caption}", item["id"])
+        durations = quran.fetch_audio(item["key"], reciter, audio)
+        verse = {**text, "hook": item["hook"], "reciter": reciter,
+                 "reciter_ar": config.RECITERS[reciter]["ar"]}
+        seconds = designer.render(verse, durations, audio, out,
+                                  background=state.get("bg_i", 0) + variant)
+    caption = build_caption(item, reciter, text["reference"])
+    msg_id = telegram.send_for_approval(
+        out, f"New Reel ready: {text['reference']} · {reciter} · {seconds:.0f}s\n\n{caption}", item["id"])
     state["last_made"] = datetime.now(ZoneInfo(config.TIMEZONE)).date().isoformat()
-    state["pending"] = {"id": item["id"], "message_id": msg_id, "variant": variant,
-                        "caption": caption, "status": "waiting"}
+    weekday = datetime.now(ZoneInfo(config.TIMEZONE)).weekday()
+    platforms = [p for p, days in config.POST_DAYS.items() if weekday in days] or ["instagram"]
+    state["pending"] = {"id": item["id"], "message_id": msg_id, "variant": variant, "platforms": platforms,
+                        "caption": caption, "status": "waiting", "reciter": reciter}
 
 
 # ---------- poll ----------
@@ -119,12 +128,13 @@ def handle_button(cb, state):
         pending["status"] = "approved"
         telegram.answer(cb["id"], "Approved")
         telegram.clear_buttons(pending["message_id"],
-                               f"✅ Approved. It goes live at {config.POST_HOUR}:00 (or now, if that time has passed).")
+                               f"✅ Approved for {', '.join(pending.get('platforms', ['instagram']))}. "
+                               f"It goes live at {config.POST_HOUR}:00 (or now, if that time has passed).")
     elif action == "redesign":
         telegram.answer(cb["id"], "Making a new design…")
         telegram.clear_buttons(pending["message_id"], "🔄 Making a new design. It arrives in a few minutes.")
         state["pending"] = None
-        make(state, variant=pending["variant"] + 1, item=item)
+        make(state, variant=pending["variant"] + 1, item={**item, "reciter": pending.get("reciter")})
     elif action == "skip":
         telegram.answer(cb["id"], "Skipped")
         telegram.clear_buttons(pending["message_id"], "❌ Skipped. Sending the next Reel.")
@@ -151,21 +161,23 @@ def publish_if_due(state):
         media_id, link = instagram.publish_reel(video_url(pending["id"], pending["variant"]), pending["caption"])
     else:
         path = os.path.join(MEDIA, video_name(pending["id"], pending["variant"]))
-        media_id, link = uploadpost.publish_reel(path, pending["caption"], pending["id"])
+        media_id, link = uploadpost.publish_reel(path, pending["caption"], pending["id"],
+                                                 pending.get("platforms", ["instagram"]))
     set_status(pending["id"], "posted", media_id=media_id, posted_at=datetime.utcnow().isoformat())
     _remove_video(pending["id"])
     state["pending"] = None
-    telegram.send_text(f"🎉 Posted on Instagram: {link}" if link else "🎉 Sent to Instagram. It appears on your page within a few minutes.")
+    where = " and ".join(p.capitalize() if p != "tiktok" else "TikTok" for p in pending.get("platforms", ["instagram"]))
+    telegram.send_text(f"🎉 Posted on {where}: {link}" if link else f"🎉 Sent to {where}. It appears within a few minutes.")
 
 
-def poll(state):
-    updates = telegram.get_updates(state.get("offset", 0))
-    for u in updates:
+def poll_once(state, wait):
+    for u in telegram.get_updates(state.get("offset", 0), wait):
         state["offset"] = u["update_id"] + 1
         if "message" in u:
             handle_message(u["message"])
         elif "callback_query" in u:
             handle_button(u["callback_query"], state)
+        save(STATE, state)
     publish_if_due(state)
     if not config.TELEGRAM_CHAT_ID:
         return                                   # no approver connected yet: nothing to send to
@@ -173,6 +185,15 @@ def poll(state):
     if (now.weekday() in config.POST_WEEKDAYS and now.hour >= config.MAKE_HOUR
             and state.get("last_made") != now.date().isoformat()):
         make(state)                              # the day's Reel, once per day
+    save(STATE, state)
+
+
+def poll(state):
+    """Stays connected to Telegram for a few minutes, so button presses are answered in seconds."""
+    deadline = time.time() + 60 * float(os.environ.get("POLL_MINUTES", "0"))
+    poll_once(state, 0)
+    while time.time() + 55 < deadline:
+        poll_once(state, 50)
 
 
 # ---------- refresh ----------
