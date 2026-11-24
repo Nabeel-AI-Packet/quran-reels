@@ -140,7 +140,7 @@ def handle_message(msg, state):
         if via == "buffer":
             try:
                 names = ", ".join(NAMES.get(p, p) for p in buffer.channels())
-                via = f"Buffer → {names}" if names else "Buffer (no accounts connected yet)"
+                via = f"Buffer → {names}" if names else buffer.diagnose()
             except RuntimeError as e:
                 via = f"Buffer ⚠️ {e}"
         telegram.send_text(f"Posted: {posted}\nWaiting in queue: {left}\nPosting via: {via}")

@@ -107,3 +107,16 @@ def wait(post_ids, minutes=8):
                 except RuntimeError:
                     pass
     return results
+
+
+def diagnose():
+    """Plain-language summary of what Buffer returned, for /status."""
+    orgs = _gql(_ORGS).get("account", {}).get("organizations", [])
+    if not orgs:
+        return "Buffer returned no organization for this API key."
+    parts = []
+    for org in orgs:
+        chans = _gql(_CHANNELS, {"input": {"organizationId": org["id"]}}).get("channels", [])
+        found = ", ".join(f"{c.get('service')} ({c.get('name')})" for c in chans) or "no channels"
+        parts.append(f"{org.get('name') or org['id']}: {found}")
+    return "Buffer sees → " + "; ".join(parts)
