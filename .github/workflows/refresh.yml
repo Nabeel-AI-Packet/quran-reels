@@ -1,15 +1,49 @@
-# Every Monday: renew the Instagram token and send weekly stats
+# Every Monday: renew the Instagram token (only used with your own Meta app)
 name: refresh
 on:
   schedule:
     - cron: '13 8 * * 1'
   workflow_dispatch:
+permissions:
+  contents: write
 concurrency:
   group: reel-agent
   cancel-in-progress: false
 jobs:
-  agent:
-    uses: ./.github/workflows/_run.yml
-    with:
-      command: refresh
-    secrets: inherit
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-hosny-amiri fonts-inter libraqm0 fontconfig > /dev/null
+          pip install -q requests pillow
+      - name: Run agent
+        id: run
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          UPLOADPOST_API_KEY: ${{ secrets.UPLOADPOST_API_KEY }}
+          UPLOADPOST_USER: ${{ secrets.UPLOADPOST_USER }}
+          POSTER: ${{ vars.POSTER }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: python -m agent.main refresh
+      - name: Save the new Instagram token
+        if: steps.run.outputs.token != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: gh secret set IG_TOKEN --body "${{ steps.run.outputs.token }}" --repo "$GITHUB_REPOSITORY"
+      - name: Save queue, state and videos
+        if: always()
+        run: |
+          git config user.name "reel-agent"
+          git config user.email "reel-agent@users.noreply.github.com"
+          git add -A queue.json state.json media
+          if ! git diff --cached --quiet; then
+            git commit -q -m "agent: refresh"
+            git pull -q --rebase
+            git push -q
+          fi
