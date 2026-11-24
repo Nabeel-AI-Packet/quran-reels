@@ -51,8 +51,13 @@ def _duration(path):
 
 def fetch_audio(key, reciter, out_path):
     """Downloads each ayah's MP3 and joins them into one file. Returns each ayah's length in seconds."""
-    folder = config.RECITERS[reciter]["folder"]
+    info = config.RECITERS[reciter]
     surah, ayahs = parse_key(key)
+    if "qa" in info:
+        from . import segment
+        parts = segment.ayah_files(info["qa"], surah, ayahs, out_path)
+        return _join(parts, out_path)
+    folder = info["folder"]
     parts = []
     for n in ayahs:
         url = f"https://everyayah.com/data/{folder}/{surah:03d}{n:03d}.mp3"
@@ -62,6 +67,10 @@ def fetch_audio(key, reciter, out_path):
         with open(p, "wb") as f:
             f.write(r.content)
         parts.append(p)
+    return _join(parts, out_path)
+
+
+def _join(parts, out_path):
     with open(out_path + ".txt", "w") as f:
         f.writelines(f"file '{p.split('/')[-1]}'\n" for p in parts)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0",

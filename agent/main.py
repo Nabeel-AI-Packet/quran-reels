@@ -79,20 +79,32 @@ def make(state, variant=0, item=None):
         state["reciter_i"] = state.get("reciter_i", -1) + 1
         state["bg_i"] = state.get("bg_i", -1) + 1
     names = list(config.RECITERS)
-    reciter = item.get("reciter") or names[state.get("reciter_i", 0) % len(names)]
+    first = item.get("reciter") or names[state.get("reciter_i", 0) % len(names)]
     text = quran.fetch_text(item["key"])
     os.makedirs(MEDIA, exist_ok=True)
     _remove_video(item["id"])
     out = os.path.join(MEDIA, video_name(item["id"], variant))
     with tempfile.TemporaryDirectory() as tmp:
         audio = os.path.join(tmp, "recitation.mp3")
-        durations = quran.fetch_audio(item["key"], reciter, audio)
+        # if a recording can't be used (missing file, verses not found), move on to the next reciter
+        i = names.index(first) if first in names else 0
+        order = names[i:] + names[:i]
+        for reciter in order[:4]:
+            try:
+                durations = quran.fetch_audio(item["key"], reciter, audio)
+                break
+            except (requests.RequestException, RuntimeError, subprocess.CalledProcessError) as e:
+                print(f"{reciter}: {e}; trying the next reciter")
+        else:
+            raise RuntimeError("no reciter's recording could be used for this verse")
         # each Reel starts a few scenes further on, and "New design" moves on again
         start = (state.get("bg_i", 0) * 5 + variant * 3)
         seconds = designer.render(durations, audio, out, start=start)
     caption = build_caption(item, reciter, text["reference"])
+    check = ("\n⚠️ Verse timing for this reciter was found automatically: listen to the end before approving."
+             if "qa" in config.RECITERS.get(reciter, {}) else "")
     msg_id = telegram.send_for_approval(
-        out, f"New Reel ready: {text['reference']} · {reciter} · {seconds:.0f}s\n\n{caption}", item["id"])
+        out, f"New Reel ready: {text['reference']} · {reciter} · {seconds:.0f}s{check}\n\n{caption}", item["id"])
     state["last_made"] = datetime.now(ZoneInfo(config.TIMEZONE)).date().isoformat()
     weekday = datetime.now(ZoneInfo(config.TIMEZONE)).weekday()
     platforms = ["all"] if config.POSTER == "buffer" else ["instagram"]   # all = every account in Buffer

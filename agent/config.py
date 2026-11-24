@@ -2,11 +2,34 @@
 import os
 
 # Reciters on everyayah.com. Reels rotate through them in this order.
+# One reciter per Reel, in rotation. "folder" = verse-by-verse files on everyayah.com (exact verse
+# timing). "qa" = full-surah files on quranicaudio.com; verses are found automatically by the pauses
+# between them, and the Telegram preview says so, so you can listen before approving.
 RECITERS = {
+    # your list
     "Yasser Al-Dosari": {"folder": "Yasser_Ad-Dussary_128kbps", "ar": "الشيخ ياسر الدوسري"},
     "Maher Al-Muaiqly": {"folder": "MaherAlMuaiqly128kbps", "ar": "الشيخ ماهر المعيقلي"},
     "Mishary Alafasy": {"folder": "Alafasy_128kbps", "ar": "الشيخ مشاري راشد العفاسي"},
+    "Salah Al-Budair": {"folder": "Salah_Al_Budair_128kbps", "ar": "الشيخ صلاح البدير"},
+    "Nasser Al-Qatami": {"folder": "Nasser_Alqatami_128kbps", "ar": "الشيخ ناصر القطامي"},
+    "Khalid Al-Qahtani": {"folder": "Khaalid_Abdullaah_al-Qahtaanee_192kbps", "ar": "الشيخ خالد القحطاني"},
+    "Khalifa Al-Tunaiji": {"folder": "khalefa_al_tunaiji_64kbps", "ar": "الشيخ خليفة الطنيجي"},
+    "Wadee Hammadi Al-Yamani": {"qa": "wadee_hammadi_al-yamani/", "ar": "الشيخ وديع اليمني"},
+    "Khalid Al-Ghamdi": {"qa": "khalid_alghamdi/", "ar": "الشيخ خالد الغامدي"},
+    "Bandar Baleela": {"qa": "bandar_baleela/complete/", "ar": "الشيخ بندر بليلة"},
+    # more well-known murattal reciters (also on quranicaudio.com)
     "Abdurrahman As-Sudais": {"folder": "Abdurrahmaan_As-Sudais_192kbps", "ar": "الشيخ عبد الرحمن السديس"},
+    "Saud Ash-Shuraim": {"folder": "Saood_ash-Shuraym_128kbps", "ar": "الشيخ سعود الشريم"},
+    "Abdul Basit Abdus-Samad": {"folder": "Abdul_Basit_Murattal_192kbps", "ar": "الشيخ عبد الباسط عبد الصمد"},
+    "Mahmoud Khalil Al-Husary": {"folder": "Husary_128kbps", "ar": "الشيخ محمود خليل الحصري"},
+    "Muhammad Siddiq Al-Minshawi": {"folder": "Minshawy_Murattal_128kbps", "ar": "الشيخ محمد صديق المنشاوي"},
+    "Abu Bakr Ash-Shatri": {"folder": "Abu_Bakr_Ash-Shaatree_128kbps", "ar": "الشيخ أبو بكر الشاطري"},
+    "Ahmed Al-Ajmi": {"folder": "ahmed_ibn_ali_al_ajamy_128kbps", "ar": "الشيخ أحمد العجمي"},
+    "Abdullah Al-Juhany": {"folder": "Abdullaah_3awwaad_Al-Juhaynee_128kbps", "ar": "الشيخ عبد الله الجهني"},
+    "Ali Al-Hudhaifi": {"folder": "Hudhaify_128kbps", "ar": "الشيخ علي الحذيفي"},
+    "Hani Ar-Rifai": {"folder": "Hani_Rifai_192kbps", "ar": "الشيخ هاني الرفاعي"},
+    "Muhammad Ayyub": {"folder": "Muhammad_Ayyoub_128kbps", "ar": "الشيخ محمد أيوب"},
+    "Salah Bukhatir": {"folder": "Salaah_AbdulRahman_Bukhatir_128kbps", "ar": "الشيخ صلاح بو خاطر"},
 }
 
 # Verse text: Uthmani Arabic, Saheeh International (English), Jozef Bielawski (Polish).
