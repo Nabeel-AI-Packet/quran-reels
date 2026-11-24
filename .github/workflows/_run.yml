@@ -7,8 +7,10 @@ on:
     secrets:
       TELEGRAM_TOKEN: {required: true}
       TELEGRAM_CHAT_ID: {required: false}
-      IG_TOKEN: {required: true}
-      IG_USER_ID: {required: true}
+      UPLOADPOST_API_KEY: {required: false}
+      UPLOADPOST_USER: {required: false}
+      IG_TOKEN: {required: false}
+      IG_USER_ID: {required: false}
       GH_PAT: {required: false}
 
 jobs:
@@ -29,6 +31,9 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          UPLOADPOST_API_KEY: ${{ secrets.UPLOADPOST_API_KEY }}
+          UPLOADPOST_USER: ${{ secrets.UPLOADPOST_USER }}
+          POSTER: ${{ vars.POSTER }}
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
         run: python -m agent.main ${{ inputs.command }}

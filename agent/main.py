@@ -12,7 +12,7 @@ import traceback
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from . import config, designer, instagram, quran, telegram
+from . import config, designer, instagram, quran, telegram, uploadpost
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUEUE = os.path.join(ROOT, "queue.json")
@@ -145,11 +145,15 @@ def publish_if_due(state):
         return
     if datetime.now(ZoneInfo(config.TIMEZONE)).hour < config.POST_HOUR:
         return
-    media_id, link = instagram.publish_reel(video_url(pending["id"], pending["variant"]), pending["caption"])
+    if config.POSTER == "meta":
+        media_id, link = instagram.publish_reel(video_url(pending["id"], pending["variant"]), pending["caption"])
+    else:
+        path = os.path.join(MEDIA, video_name(pending["id"], pending["variant"]))
+        media_id, link = uploadpost.publish_reel(path, pending["caption"], pending["id"])
     set_status(pending["id"], "posted", media_id=media_id, posted_at=datetime.utcnow().isoformat())
     _remove_video(pending["id"])
     state["pending"] = None
-    telegram.send_text(f"🎉 Posted on Instagram: {link}")
+    telegram.send_text(f"🎉 Posted on Instagram: {link}" if link else "🎉 Sent to Instagram. It appears on your page within a few minutes.")
 
 
 def poll(state):
@@ -162,13 +166,16 @@ def poll(state):
             handle_button(u["callback_query"], state)
     publish_if_due(state)
     now = datetime.now(ZoneInfo(config.TIMEZONE))
-    if now.hour >= config.MAKE_HOUR and state.get("last_made") != now.date().isoformat():
+    if (now.weekday() in config.POST_WEEKDAYS and now.hour >= config.MAKE_HOUR
+            and state.get("last_made") != now.date().isoformat()):
         make(state)                              # the day's Reel, once per day
 
 
 # ---------- refresh ----------
 
 def refresh():
+    if config.POSTER != "meta" or not config.IG_TOKEN:
+        return                                   # only the Meta route has a token to renew
     new = instagram.refresh_token()
     print(f"::add-mask::{new}")                 # hide the token in GitHub's logs
     with open(os.environ.get("GITHUB_OUTPUT", os.devnull), "a") as f:
