@@ -20,7 +20,7 @@
   {
     "id": "r02",
     "key": "2:286",
-    "status": "queued",
+    "status": "skipped",
     "hook": "You can carry this.",
     "caption_en": "Whatever you face today, Allah knows you were made able to bear it.",
     "caption_pl": "Cokolwiek dziś przeżywasz, Allah wie, że jesteś w stanie to unieść."
@@ -28,7 +28,7 @@
   {
     "id": "m01",
     "key": "67:1-5",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Surah Al-Mulk · Part 1 of 6",
     "caption_en": "Surah Al-Mulk, part 1 of 6. A surah to recite every night before sleep.",
     "caption_pl": "Sura Al-Mulk, część 1 z 6. Sura do recytowania każdej nocy przed snem."
@@ -36,7 +36,7 @@
   {
     "id": "f07",
     "key": "93:1-11",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Surah Ad-Duha",
     "caption_en": "Your Lord has not forsaken you. Listen to the whole surah.",
     "caption_pl": "Twój Pan cię nie opuścił. Posłuchaj całej sury."
@@ -44,7 +44,7 @@
   {
     "id": "r03",
     "key": "13:28",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Where hearts find rest",
     "caption_en": "Restless lately? Hearts find peace in the remembrance of Allah.",
     "caption_pl": "Niespokojne serce? Spokój znajduje się w pamiętaniu o Allahu."
@@ -52,7 +52,7 @@
   {
     "id": "m02",
     "key": "67:6-11",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Surah Al-Mulk · Part 2 of 6",
     "caption_en": "Surah Al-Mulk, part 2 of 6. A surah to recite every night before sleep.",
     "caption_pl": "Sura Al-Mulk, część 2 z 6. Sura do recytowania każdej nocy przed snem."
@@ -60,7 +60,7 @@
   {
     "id": "f10",
     "key": "2:255",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Ayat al-Kursi",
     "caption_en": "The greatest verse in the Quran. Recite it before you sleep.",
     "caption_pl": "Najwspanialszy werset Koranu. Recytuj go przed snem."
@@ -68,7 +68,7 @@
   {
     "id": "r04",
     "key": "2:186",
-    "status": "queued",
+    "status": "skipped",
     "hook": "He is closer than you think",
     "caption_en": "Your dua is heard, even the ones you never say out loud.",
     "caption_pl": "Twoja modlitwa jest słyszana, nawet ta niewypowiedziana na głos."
@@ -76,7 +76,7 @@
   {
     "id": "f01",
     "key": "1:1-7",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Al-Fatiha · The Opening",
     "caption_en": "The surah we recite in every prayer. Listen with your heart today.",
     "caption_pl": "Sura, którą recytujemy w każdej modlitwie. Posłuchaj jej dziś sercem."

@@ -1,20 +1,20 @@
 {
-  "offset": 602951139,
+  "offset": 602951147,
   "pending": {
-    "id": "r02",
-    "message_id": 62,
+    "id": "m03",
+    "message_id": 78,
     "variant": 0,
     "platforms": [
       "all"
     ],
-    "caption": "Whatever you face today, Allah knows you were made able to bear it.\n\nCokolwiek dziś przeżywasz, Allah wie, że jesteś w stanie to unieść.\n\n📖 Al-Baqara 2:286\n🎙 Mishary Alafasy\n🌐 Saheeh International (EN), J. Bielawski (PL)\n\n#quran #quranrecitation #islam #muslim #islamicreminders #dua #koran #islampolska",
-    "caption_x": "Whatever you face today, Allah knows you were made able to bear it.\n\n📖 Al-Baqara 2:286 · Mishary Alafasy\n#quran #islam",
-    "title": "Al-Baqara 2:286",
+    "caption": "Surah Al-Mulk, part 3 of 6. A surah to recite every night before sleep.\n\nSura Al-Mulk, część 3 z 6. Sura do recytowania każdej nocy przed snem.\n\n📖 Al-Mulk 67:12–15\n🎙 Mishary Alafasy\n🌐 Saheeh International (EN), J. Bielawski (PL)\n\n#quran #quranrecitation #islam #muslim #islamicreminders #dua #koran #islampolska",
+    "caption_x": "Surah Al-Mulk, part 3 of 6. A surah to recite every night before sleep.\n\n📖 Al-Mulk 67:12–15 · Mishary Alafasy\n#quran #islam",
+    "title": "Al-Mulk 67:12–15",
     "status": "waiting",
     "reciter": "Mishary Alafasy"
   },
   "last_made": "2026-11-24",
-  "reciter_i": 2,
-  "bg_i": 2,
+  "reciter_i": 10,
+  "bg_i": 10,
   "uploads": {}
 }
