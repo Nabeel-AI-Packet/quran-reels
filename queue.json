@@ -164,7 +164,7 @@
   {
     "id": "r08",
     "key": "2:153",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Your two tools for hard days",
     "caption_en": "Sabr and salah: seek help through patience and prayer.",
     "caption_pl": "Sabr i salah: szukaj pomocy w cierpliwości i modlitwie."
@@ -172,15 +172,17 @@
   {
     "id": "f08",
     "key": "94:1-8",
-    "status": "queued",
+    "status": "posted",
     "hook": "Surah Ash-Sharh · in full",
     "caption_en": "Did We not expand your chest? The full surah of comfort.",
-    "caption_pl": "Czyż nie otworzyliśmy twojej piersi? Cała sura pocieszenia."
+    "caption_pl": "Czyż nie otworzyliśmy twojej piersi? Cała sura pocieszenia.",
+    "media_id": "{}",
+    "posted_at": "2026-11-24T20:05:09.308692"
   },
   {
     "id": "f05",
     "key": "108:1-3",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Surah Al-Kawthar",
     "caption_en": "The shortest surah, and a reminder of Allah's abundant gifts.",
     "caption_pl": "Najkrótsza sura i przypomnienie o obfitych darach Allaha."
@@ -188,7 +190,7 @@
   {
     "id": "r09",
     "key": "40:60",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Have you asked Him yet?",
     "caption_en": "He invites you to ask. Make dua now, before you scroll on.",
     "caption_pl": "On zaprasza, byś Go prosił. Zrób du'a teraz, zanim przewiniesz dalej."
@@ -196,10 +198,12 @@
   {
     "id": "f09",
     "key": "110:1-3",
-    "status": "queued",
+    "status": "posted",
     "hook": "Surah An-Nasr",
     "caption_en": "When the help of Allah comes, glorify your Lord and seek His forgiveness.",
-    "caption_pl": "Gdy przychodzi pomoc Allaha, wysławiaj swego Pana i proś Go o przebaczenie."
+    "caption_pl": "Gdy przychodzi pomoc Allaha, wysławiaj swego Pana i proś Go o przebaczenie.",
+    "media_id": "{}",
+    "posted_at": "2026-11-24T20:08:24.841235"
   },
   {
     "id": "k01",

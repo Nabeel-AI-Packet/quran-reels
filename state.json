@@ -1,20 +1,8 @@
 {
-  "offset": 602951160,
-  "pending": {
-    "id": "r08",
-    "message_id": 102,
-    "variant": 0,
-    "platforms": [
-      "all"
-    ],
-    "caption": "Sabr and salah: seek help through patience and prayer.\n\nSabr i salah: szukaj pomocy w cierpliwości i modlitwie.\n\n📖 Al-Baqara 2:153\n🎙 Muhammad Ayyub\n🌐 Saheeh International (EN), J. Bielawski (PL)\n\n#quran #quranrecitation #islam #muslim #islamicreminders #dua #koran #islampolska",
-    "caption_x": "Sabr and salah: seek help through patience and prayer.\n\n📖 Al-Baqara 2:153 · Muhammad Ayyub\n#quran #islam",
-    "title": "Al-Baqara 2:153",
-    "status": "waiting",
-    "reciter": "Muhammad Ayyub"
-  },
+  "offset": 602951169,
+  "pending": null,
   "last_made": "2026-11-24",
-  "reciter_i": 20,
-  "bg_i": 20,
+  "reciter_i": 24,
+  "bg_i": 24,
   "uploads": {}
 }
