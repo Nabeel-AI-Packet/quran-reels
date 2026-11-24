@@ -1,0 +1,62 @@
+[
+  {
+    "id": "r01", "key": "94:5-6", "status": "queued",
+    "hook": "Feeling overwhelmed? Listen.",
+    "caption_en": "Ease is promised twice, so it never comes alone. Whatever you're carrying today, relief is already on its way.",
+    "caption_pl": "Ulga obiecana jest dwa razy. Cokolwiek dziś dźwigasz, ulga już nadchodzi."
+  },
+  {
+    "id": "r02", "key": "2:286", "status": "queued",
+    "hook": "You can carry this.",
+    "caption_en": "Whatever you face today, Allah knows you were made able to bear it.",
+    "caption_pl": "Cokolwiek dziś przeżywasz, Allah wie, że jesteś w stanie to unieść."
+  },
+  {
+    "id": "r03", "key": "13:28", "status": "queued",
+    "hook": "Where hearts find rest",
+    "caption_en": "Restless lately? Hearts find peace in the remembrance of Allah.",
+    "caption_pl": "Niespokojne serce? Spokój znajduje się w pamiętaniu o Allahu."
+  },
+  {
+    "id": "r04", "key": "2:186", "status": "queued",
+    "hook": "He is closer than you think",
+    "caption_en": "Your dua is heard, even the ones you never say out loud.",
+    "caption_pl": "Twoja modlitwa jest słyszana, nawet ta niewypowiedziana na głos."
+  },
+  {
+    "id": "r05", "key": "39:53", "status": "queued",
+    "hook": "It's not too late.",
+    "caption_en": "No mistake is bigger than His mercy. Come back to Him.",
+    "caption_pl": "Żaden błąd nie jest większy niż Jego miłosierdzie. Wróć do Niego."
+  },
+  {
+    "id": "r06", "key": "65:2-3", "status": "queued",
+    "hook": "Stuck with no way out?",
+    "caption_en": "Provision can come from where you never expected. Trust Him and keep going.",
+    "caption_pl": "Zaopatrzenie może przyjść stamtąd, skąd się nie spodziewasz. Zaufaj Mu i idź dalej."
+  },
+  {
+    "id": "r07", "key": "2:152", "status": "queued",
+    "hook": "Remember Him today",
+    "caption_en": "Remember Him, and He remembers you. A simple dhikr can change your whole day.",
+    "caption_pl": "Pamiętaj o Nim, a On będzie pamiętał o Tobie. Jeden dhikr może zmienić cały dzień."
+  },
+  {
+    "id": "r08", "key": "2:153", "status": "queued",
+    "hook": "Your two tools for hard days",
+    "caption_en": "Sabr and salah: seek help through patience and prayer.",
+    "caption_pl": "Sabr i salah: szukaj pomocy w cierpliwości i modlitwie."
+  },
+  {
+    "id": "r09", "key": "40:60", "status": "queued",
+    "hook": "Have you asked Him yet?",
+    "caption_en": "He invites you to ask. Make dua now, before you scroll on.",
+    "caption_pl": "On zaprasza, byś Go prosił. Zrób du'a teraz, zanim przewiniesz dalej."
+  },
+  {
+    "id": "r10", "key": "112:1-4", "status": "queued",
+    "hook": "Four verses, a third of the Quran",
+    "caption_en": "Surah Al-Ikhlas: the oneness of Allah in four short verses. Share it with someone who needs a reminder.",
+    "caption_pl": "Sura Al-Ikhlas: jedność Allaha w czterech krótkich wersetach. Udostępnij komuś, kto potrzebuje przypomnienia."
+  }
+]
