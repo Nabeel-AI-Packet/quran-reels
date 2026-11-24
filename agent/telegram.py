@@ -20,7 +20,9 @@ def send_text(text, chat_id=None):
 
 def send_for_approval(video_path, caption, post_id):
     buttons = {"inline_keyboard": [[
-        {"text": "✅ Post", "callback_data": f"approve:{post_id}"},
+        {"text": "✅ Post at 19:00", "callback_data": f"approve:{post_id}"},
+        {"text": "🚀 Post now", "callback_data": f"now:{post_id}"},
+    ], [
         {"text": "🔄 New design", "callback_data": f"redesign:{post_id}"},
         {"text": "❌ Skip", "callback_data": f"skip:{post_id}"},
     ]]}
@@ -49,3 +51,20 @@ def clear_buttons(message_id, note):
     _api("editMessageReplyMarkup", data={"chat_id": config.TELEGRAM_CHAT_ID, "message_id": message_id,
                                          "reply_markup": json.dumps({"inline_keyboard": []})})
     send_text(note)
+
+
+def ask(text, buttons):
+    """A message with one row of buttons: buttons = [(label, callback_data), ...]."""
+    markup = {"inline_keyboard": [[{"text": t, "callback_data": d} for t, d in buttons]]}
+    return _api("sendMessage", data={"chat_id": config.TELEGRAM_CHAT_ID, "text": text,
+                                     "reply_markup": json.dumps(markup)})["message_id"]
+
+
+def download(file_id, out_path):
+    """Saves a file the user sent. Telegram lets bots download files up to 20 MB."""
+    path = _api("getFile", data={"file_id": file_id})["file_path"]
+    r = requests.get(f"https://api.telegram.org/file/bot{config.TELEGRAM_TOKEN}/{path}", timeout=300)
+    r.raise_for_status()
+    with open(out_path, "wb") as f:
+        f.write(r.content)
+    return out_path

@@ -6,6 +6,7 @@
 """
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -111,13 +112,26 @@ def set_status(post_id, status, **extra):
     save(QUEUE, queue)
 
 
-def handle_message(msg):
+def handle_message(msg, state):
     chat = str(msg["chat"]["id"])
     if not config.TELEGRAM_CHAT_ID:
         telegram.send_text(f"Hi! Your chat ID is {chat}. Add it to GitHub as the secret TELEGRAM_CHAT_ID.", chat)
         return
     if chat != config.TELEGRAM_CHAT_ID:
         return                                       # ignore everyone except the approver
+    if msg.get("video") or msg.get("photo") or msg.get("document"):
+        handle_upload(msg, state)
+        return
+    if msg.get("text", "").startswith("/postnow"):
+        pending = state.get("pending")
+        if pending and pending["status"] == "approved":
+            pending["now"] = True
+            telegram.send_text("🚀 Posting the approved Reel now.")
+        elif pending and pending["status"] == "waiting":
+            telegram.send_text("Tap 🚀 Post now under the Reel first.")
+        else:
+            telegram.send_text("No approved Reel is waiting.")
+        return
     if msg.get("text", "").startswith("/status"):
         queue = load(QUEUE, [])
         left = sum(1 for q in queue if q.get("status", "queued") == "queued")
@@ -136,13 +150,22 @@ def handle_button(cb, state):
     if str(cb["message"]["chat"]["id"]) != config.TELEGRAM_CHAT_ID:
         return
     action, _, post_id = cb["data"].partition(":")
+    if action == "up":
+        choice, _, uid = post_id.partition(":")
+        handle_upload_button(cb, state, choice, uid)
+        return
     pending = state.get("pending")
     if not pending or pending["id"] != post_id or pending["status"] != "waiting":
         telegram.answer(cb["id"], "This Reel was already handled.")
         return
     queue = load(QUEUE, [])
     item = next(q for q in queue if q["id"] == post_id)
-    if action == "approve":
+    if action == "now":
+        pending["status"] = "approved"
+        pending["now"] = True
+        telegram.answer(cb["id"], "Posting now")
+        telegram.clear_buttons(pending["message_id"], "🚀 Approved. Posting now; the links follow in a few minutes.")
+    elif action == "approve":
         pending["status"] = "approved"
         telegram.answer(cb["id"], "Approved")
         telegram.clear_buttons(pending["message_id"],
@@ -172,26 +195,26 @@ def _remove_video(post_id):
 NAMES = {"instagram": "Instagram", "tiktok": "TikTok", "x": "X"}
 
 
-def publish_buffer(state, pending):
-    """Posts to every connected platform once, then reports. Safe to run again: a platform
-    that already has a Buffer post is never posted twice."""
-    posts = pending.setdefault("buffer_posts", {})      # platform -> Buffer post id | "unknown"
-    done = pending.setdefault("done", {})               # platform -> link | "error: ..." | "unknown"
-    errors = pending.setdefault("errors", {})
-    if "connected" not in pending:
+def buffer_job(state, job, url, kind="video"):
+    """Posts one item to each of job["platforms"] that is connected in Buffer, once.
+    Safe to call again: a platform that already has a Buffer post is never posted twice.
+    Returns report lines when every platform is finished, else None (checked again next run)."""
+    posts = job.setdefault("buffer_posts", {})          # platform -> Buffer post id | "unknown"
+    done = job.setdefault("done", {})                   # platform -> link | "error: ..." | "unknown"
+    errors = job.setdefault("errors", {})
+    if "connected" not in job:
         chans = buffer.channels()
-        pending["connected"] = chans
-        for p in pending.get("platforms", ["instagram"]):
+        job["connected"] = chans
+        for p in job["platforms"]:
             if p not in chans:
                 done[p] = "not connected in Buffer"
-    chans = pending["connected"]
-    url = video_url(pending["id"], pending["variant"])
-    for p in pending.get("platforms", ["instagram"]):
+    chans = job["connected"]
+    for p in job["platforms"]:
         if p in done or p in posts or p not in chans:
             continue
-        text = (pending.get("caption_x") or pending["caption"][:280]) if p == "x" else pending["caption"]
+        text = (job.get("caption_x") or job["caption"][:280]) if p == "x" else job["caption"]
         try:
-            posts[p] = buffer.create(p, chans[p], text, url, pending.get("title", ""))
+            posts[p] = buffer.create(p, chans[p], text, url, job.get("title", ""), kind)
         except buffer.Unsure as e:
             posts[p] = "unknown"
             done[p] = f"unknown ({e}) - check the app before posting again"
@@ -200,33 +223,129 @@ def publish_buffer(state, pending):
             if errors[p] >= 3:
                 done[p] = f"error: {e}"
         save(STATE, state)                              # record each post at once (no doubles)
-    pending["status"] = "publishing"
     waiting = {p: i for p, i in posts.items() if p not in done and i != "unknown"}
-    for p, (s, info) in buffer.wait(waiting).items():
-        if s == "sent":
+    for p, (st, info) in buffer.wait(waiting).items():
+        if st == "sent":
             done[p] = info or "posted"
-        elif s == "error":
+        elif st == "error":
             done[p] = f"error: {info}"
-    if any(p not in done for p in pending.get("platforms", ["instagram"])):
-        return                                          # still processing: checked again next run
+    if any(p not in done for p in job["platforms"]):
+        return None
     lines = []
-    for p in pending.get("platforms", ["instagram"]):
+    for p in job["platforms"]:
         r = done[p]
-        icon = "✅" if r.startswith("http") or r == "posted" else ("➖" if r.startswith("not connected") else "⚠️")
+        ok = r.startswith("http") or r == "posted"
+        icon = "✅" if ok else ("➖" if r.startswith("not connected") else "⚠️")
         lines.append(f"{icon} {NAMES.get(p, p)}: {r}")
     if any(not (d.startswith("http") or d == "posted" or d.startswith("not connected")) for d in done.values()):
-        lines.append("\nFor ⚠️ platforms, post the video from the message above by hand.")
-    set_status(pending["id"], "posted", media_id=str(posts), posted_at=datetime.utcnow().isoformat())
+        lines.append("\nFor ⚠️ platforms, post it by hand from the message above.")
+    return lines
+
+
+def publish_buffer(state, pending):
+    pending["status"] = "publishing"
+    lines = buffer_job(state, pending, video_url(pending["id"], pending["variant"]))
+    if lines is None:
+        return                                          # still processing: checked again next run
+    set_status(pending["id"], "posted", media_id=str(pending.get("buffer_posts")),
+               posted_at=datetime.utcnow().isoformat())
     _remove_video(pending["id"])
     state["pending"] = None
     telegram.send_text("🎉 Reel published\n" + "\n".join(lines))
+
+
+# ---------- your own uploads: send a video or photo to the bot ----------
+
+def git_save(paths, message):
+    """Pushes files now, so Buffer can download them from the public repository."""
+    def git(*a):
+        subprocess.run(["git", *a], cwd=ROOT, check=True, capture_output=True, text=True)
+    git("add", "-A", *paths)
+    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT).returncode == 0:
+        return
+    git("-c", "user.name=reel-agent", "-c", "user.email=reel-agent@users.noreply.github.com",
+        "commit", "-q", "-m", message)
+    git("pull", "-q", "--rebase", "--autostash")
+    git("push", "-q")
+
+
+def raw_url(name):
+    return f"https://raw.githubusercontent.com/{config.REPO}/{config.BRANCH}/media/{name}"
+
+
+def handle_upload(msg, state):
+    """A video or photo from the approver: ask where to post it (nothing is posted without a tap)."""
+    if msg.get("video"):
+        f, kind, ext = msg["video"], "video", ".mp4"
+    elif msg.get("photo"):
+        f, kind, ext = msg["photo"][-1], "image", ".jpg"          # largest size
+    else:
+        d = msg["document"]
+        mime = d.get("mime_type", "")
+        if not mime.startswith(("video/", "image/")):
+            telegram.send_text("Send a video or a photo and I'll post it.")
+            return
+        f, kind = d, ("video" if mime.startswith("video/") else "image")
+        ext = ".mp4" if kind == "video" else (".png" if "png" in mime else ".jpg")
+    if f.get("file_size", 0) > 20 * 1024 * 1024:
+        telegram.send_text("This file is over 20 MB, the most a Telegram bot can download. "
+                           "Send a shorter or compressed version.")
+        return
+    uid = f"u{msg['message_id']}"
+    state.setdefault("uploads", {})[uid] = {
+        "file_id": f["file_id"], "kind": kind, "ext": ext, "caption": msg.get("caption") or config.HASHTAGS,
+        "status": "asking"}
+    options = [("📤 Instagram", f"up:ig:{uid}")]
+    if kind == "video" and config.POSTER == "buffer":
+        options.append(("📤 Instagram + TikTok + X", f"up:all:{uid}"))
+    options.append(("✖ Cancel", f"up:no:{uid}"))
+    note = "" if msg.get("caption") else "\n(No caption was sent, so only your hashtags will be used.)"
+    state["uploads"][uid]["ask_id"] = telegram.ask(f"Post this {kind} now?{note}", options)
+
+
+def handle_upload_button(cb, state, choice, uid):
+    job = state.get("uploads", {}).get(uid)
+    if not job or job["status"] != "asking":
+        telegram.answer(cb["id"], "Already handled.")
+        return
+    telegram.clear_buttons(job["ask_id"], "✖ Cancelled." if choice == "no" else "📤 Posting now…")
+    telegram.answer(cb["id"], "OK")
+    if choice == "no":
+        state["uploads"].pop(uid)
+        return
+    if config.POSTER != "buffer":
+        state["uploads"].pop(uid)
+        telegram.send_text("Posting your own files needs Buffer: add the BUFFER_API_KEY secret on GitHub.")
+        return
+    job["platforms"] = ["instagram"] if choice == "ig" else ["instagram", "tiktok", "x"]
+    job["status"] = "posting"
+    job["name"] = f"{uid}{job['ext']}"
+    os.makedirs(MEDIA, exist_ok=True)
+    telegram.download(job["file_id"], os.path.join(MEDIA, job["name"]))
+    git_save(["media"], f"Upload {uid} for posting")
+    save(STATE, state)
+
+
+def process_uploads(state):
+    for uid, job in list(state.get("uploads", {}).items()):
+        if job["status"] != "posting":
+            continue
+        lines = buffer_job(state, job, raw_url(job["name"]), job["kind"])
+        if lines is None:
+            continue
+        path = os.path.join(MEDIA, job["name"])
+        if os.path.exists(path):
+            os.remove(path)
+        state["uploads"].pop(uid)
+        telegram.send_text("🎉 Your post is published\n" + "\n".join(lines))
 
 
 def publish_if_due(state):
     pending = state.get("pending")
     if not pending or pending["status"] not in ("approved", "publishing"):
         return
-    if pending["status"] == "approved" and datetime.now(ZoneInfo(config.TIMEZONE)).hour < config.POST_HOUR:
+    if (pending["status"] == "approved" and not pending.get("now")
+            and datetime.now(ZoneInfo(config.TIMEZONE)).hour < config.POST_HOUR):
         return
     if config.POSTER == "buffer":
         publish_buffer(state, pending)
@@ -248,11 +367,12 @@ def poll_once(state, wait):
     for u in telegram.get_updates(state.get("offset", 0), wait):
         state["offset"] = u["update_id"] + 1
         if "message" in u:
-            handle_message(u["message"])
+            handle_message(u["message"], state)
         elif "callback_query" in u:
             handle_button(u["callback_query"], state)
         save(STATE, state)
     publish_if_due(state)
+    process_uploads(state)
     if not config.TELEGRAM_CHAT_ID:
         return                                   # no approver connected yet: nothing to send to
     now = datetime.now(ZoneInfo(config.TIMEZONE))

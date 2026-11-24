@@ -63,18 +63,21 @@ def channels():
     return found
 
 
-def _metadata(platform, title):
+def _metadata(platform, title, kind="video"):
     if platform == "instagram":
+        if kind == "image":
+            return {"instagram": {"type": "post"}}
         return {"instagram": {"type": "reel", "shouldShareToFeed": True}}
     if platform == "tiktok":
         return {"tiktok": {"title": title[:90], "isAiGenerated": False}}
     return {}
 
 
-def create(platform, channel_id, text, video_url, title):
+def create(platform, channel_id, text, media_url, title, kind="video"):
+    asset = {"image": {"url": media_url}} if kind == "image" else {"video": {"url": media_url}}
     res = _gql(_CREATE, {"input": {
         "channelId": channel_id, "text": text, "schedulingType": "automatic", "mode": "shareNow",
-        "assets": [{"video": {"url": video_url}}], "metadata": _metadata(platform, title)}},
+        "assets": [asset], "metadata": _metadata(platform, title, kind)}},
         mutation=True).get("createPost", {})
     if "post" not in res:
         raise RuntimeError(f"Buffer refused the {platform} post: {res.get('message', res)}")
