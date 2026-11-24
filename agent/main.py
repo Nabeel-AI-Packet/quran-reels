@@ -406,10 +406,17 @@ def poll_once(state, wait):
         updates = []
     for u in updates:
         state["offset"] = u["update_id"] + 1
-        if "message" in u:
-            handle_message(u["message"], state)
-        elif "callback_query" in u:
-            handle_button(u["callback_query"], state)
+        try:
+            if "message" in u:
+                handle_message(u["message"], state)
+            elif "callback_query" in u:
+                handle_button(u["callback_query"], state)
+        except Exception as e:                   # one failed request never stops the bot
+            traceback.print_exc()
+            try:
+                telegram.send_text(f"⚠️ That didn't work: {str(e)[:300]}\nTry again, or send this to Claude.")
+            except Exception:
+                pass
         save(STATE, state)
     publish_if_due(state)
     process_uploads(state)

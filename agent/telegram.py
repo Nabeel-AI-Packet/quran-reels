@@ -43,13 +43,21 @@ def get_updates(offset, wait=0):
 
 
 def answer(callback_id, text):
-    _api("answerCallbackQuery", data={"callback_query_id": callback_id, "text": text})
+    """The small pop-up after a tap. Telegram refuses it for taps older than a few seconds
+    (for example made while the bot was between runs); the tap itself is still handled."""
+    try:
+        _api("answerCallbackQuery", data={"callback_query_id": callback_id, "text": text})
+    except (RuntimeError, requests.RequestException):
+        pass
 
 
 def clear_buttons(message_id, note):
     """Removes the buttons and adds a status line, so the choice can't be made twice."""
-    _api("editMessageReplyMarkup", data={"chat_id": config.TELEGRAM_CHAT_ID, "message_id": message_id,
-                                         "reply_markup": json.dumps({"inline_keyboard": []})})
+    try:
+        _api("editMessageReplyMarkup", data={"chat_id": config.TELEGRAM_CHAT_ID, "message_id": message_id,
+                                             "reply_markup": json.dumps({"inline_keyboard": []})})
+    except RuntimeError:
+        pass                         # buttons already gone or message too old: not a reason to stop
     send_text(note)
 
 
