@@ -1,0 +1,41 @@
+# Downloads new design files listed in assets/incoming.txt (name + link per line),
+# plus the Amiri Quran font, and saves them into the repository.
+name: fetch-assets
+on:
+  push:
+    paths: ['assets/incoming.txt', '.github/workflows/fetch-assets.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: reel-agent
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download backgrounds
+        run: |
+          mkdir -p assets/backgrounds assets/fonts
+          if [ -f assets/incoming.txt ]; then
+            while read -r name url; do
+              [ -n "$name" ] && curl -fsSL "$url" -o "assets/backgrounds/$name" && echo "got $name"
+            done < assets/incoming.txt
+            rm assets/incoming.txt
+          fi
+      - name: Download Amiri Quran font
+        run: |
+          if [ ! -f assets/fonts/AmiriQuran.ttf ]; then
+            zip_url=$(curl -fsSL https://api.github.com/repos/aliftype/amiri/releases/latest | python3 -c "import sys,json;print([a['browser_download_url'] for a in json.load(sys.stdin)['assets'] if a['name'].endswith('.zip')][0])")
+            curl -fsSL "$zip_url" -o /tmp/amiri.zip && unzip -o -q /tmp/amiri.zip -d /tmp/amiri
+            find /tmp/amiri -name 'AmiriQuran.ttf' -exec cp {} assets/fonts/ \;
+            find /tmp/amiri -iname '*OFL*' -exec cp {} assets/fonts/AmiriQuran-LICENSE.txt \; -quit
+            ls -la assets/fonts
+          fi
+      - name: Save
+        run: |
+          git config user.name "reel-agent"
+          git config user.email "reel-agent@users.noreply.github.com"
+          git add -A assets
+          git diff --cached --quiet || (git commit -q -m "Add design assets" && git pull -q --rebase && git push -q)
