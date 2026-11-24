@@ -14,6 +14,8 @@ import traceback
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import requests
+
 from . import buffer, config, designer, instagram, quran, telegram, uploadpost
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -380,7 +382,12 @@ def publish_if_due(state):
 
 
 def poll_once(state, wait):
-    for u in telegram.get_updates(state.get("offset", 0), wait):
+    try:
+        updates = telegram.get_updates(state.get("offset", 0), wait)
+    except requests.RequestException:
+        time.sleep(5)                                # a network blip: try again on the next round
+        updates = []
+    for u in updates:
         state["offset"] = u["update_id"] + 1
         if "message" in u:
             handle_message(u["message"], state)
