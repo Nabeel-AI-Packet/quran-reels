@@ -101,6 +101,8 @@ def make(state, variant=0, item=None):
         start = (state.get("bg_i", 0) * 5 + variant * 3)
         seconds = designer.render(durations, audio, out, start=start)
     caption = build_caption(item, reciter, text["reference"])
+    if designer.LAST_CREDITS:                     # CC BY footage must be credited
+        caption += "\n🎥 Footage: " + "; ".join(designer.LAST_CREDITS)
     check = ("\n⚠️ Verse timing for this reciter was found automatically: listen to the end before approving."
              if "qa" in config.RECITERS.get(reciter, {}) else "")
     msg_id = telegram.send_for_approval(

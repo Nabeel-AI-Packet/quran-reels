@@ -1,9 +1,11 @@
-"""Reel designer: the recitation over calm nature and space scenes, with no text on screen.
+"""Reel designer: the recitation over calm nature and space footage, with no text on screen.
 
-Each Reel uses several scenes from assets/scenes (Canva designs), each with a slow
-zoom, joined by soft crossfades. The audio fades in and out gently.
+Real video clips from assets/clips (built by the fetch-clips workflow) are used when there are
+any; otherwise the still scenes in assets/scenes with a slow zoom. Scenes are joined by soft
+crossfades, and the audio fades in and out gently.
 """
 import glob
+import json
 import os
 import subprocess
 import tempfile
@@ -16,6 +18,18 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCENES = os.path.join(ROOT, "assets", "scenes")
 XFADE = 1.2          # seconds of crossfade between scenes
 SCENE_LEN = 9.0      # target seconds per scene
+
+
+CLIPS = os.path.join(ROOT, "assets", "clips")
+LAST_CREDITS = []    # credit lines the last render's footage requires (CC BY clips)
+
+
+def clip_files():
+    try:
+        index = json.load(open(os.path.join(CLIPS, "clips.json")))
+    except (OSError, ValueError):
+        return []
+    return [c for c in index if os.path.exists(os.path.join(CLIPS, c["file"]))]
 
 
 def scene_files():
@@ -35,9 +49,11 @@ def _prepare(path, out):
 def render(durations, audio_path, out_path, start=0):
     """durations: seconds per ayah. start: which scene to begin with (rotates through the pool).
     Returns the video length in seconds."""
-    files = scene_files()
+    global LAST_CREDITS
+    clips = clip_files()
+    files = [os.path.join(CLIPS, c["file"]) for c in clips] or scene_files()
     if not files:
-        raise RuntimeError("No scenes in assets/scenes")
+        raise RuntimeError("No footage in assets/clips and no scenes in assets/scenes")
     lead, tail = 0.8, 1.5
     total = lead + sum(durations) + tail
     n = max(1, min(len(files), round(total / SCENE_LEN)))
@@ -45,8 +61,16 @@ def render(durations, audio_path, out_path, start=0):
     with tempfile.TemporaryDirectory() as tmp:
         inputs, filters = [], []
         frames = int(seg * FPS) + 2
+        used = []
         for i in range(n):
             src = files[(start + i) % len(files)]
+            used.append(src)
+            if clips:   # real footage, played a little slower for a calm feel, looped if short
+                inputs += ["-stream_loop", "-1", "-t", f"{seg:.3f}", "-i", src]
+                filters.append(f"[{i}:v]setpts=1.25*PTS,scale={W}:{H}:force_original_aspect_ratio=increase,"
+                               f"crop={W}:{H},fps={FPS},setsar=1,format=yuv420p,"
+                               f"trim=duration={seg:.3f},setpts=PTS-STARTPTS[s{i}]")
+                continue
             img = os.path.join(tmp, f"s{i}.jpg")
             _prepare(src, img)
             inputs += ["-loop", "1", "-framerate", str(FPS), "-t", f"{seg:.3f}", "-i", img]
@@ -67,4 +91,6 @@ def render(durations, audio_path, out_path, start=0):
                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p",
                 "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "-t", f"{total:.3f}", out_path])
         subprocess.run(cmd, check=True)
+    by_file = {os.path.join(CLIPS, c["file"]): c.get("credit", "") for c in clips}
+    LAST_CREDITS = sorted({by_file[u] for u in used if by_file.get(u)})
     return total

@@ -1,0 +1,33 @@
+# Builds the real nature-footage library (assets/clips) from Wikimedia Commons and NASA.
+# Run it from Actions -> fetch-clips -> Run workflow; run again any time for more clips.
+name: fetch-clips
+on:
+  workflow_dispatch:
+    inputs:
+      per_query:
+        description: Clips to add per search topic
+        default: '3'
+permissions:
+  contents: write
+concurrency:
+  group: fetch-clips
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+      - run: pip install -q requests
+      - run: python scripts/fetch_clips.py "${{ inputs.per_query || '3' }}"
+      - name: Save
+        run: |
+          git config user.name "reel-agent"
+          git config user.email "reel-agent@users.noreply.github.com"
+          git add -A assets/clips
+          git diff --cached --quiet || (git commit -q -m "Add nature footage clips" && git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main)
