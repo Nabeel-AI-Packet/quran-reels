@@ -122,6 +122,23 @@ def handle_message(msg, state):
     if msg.get("video") or msg.get("photo") or msg.get("document"):
         handle_upload(msg, state)
         return
+    text = msg.get("text", "")
+    if text.startswith("/new"):
+        pending = state.get("pending")
+        if pending and pending["status"] == "waiting":
+            telegram.send_text("A Reel is already waiting for you: tap 🔄 New design (same verses) "
+                               "or ❌ Skip (next verses) under it.")
+        elif pending:
+            telegram.send_text("The approved Reel hasn't been posted yet. Send /postnow to post it first.")
+        else:
+            telegram.send_text("🎬 Making a new Reel. It arrives in about 3 minutes.")
+            make(state)
+        return
+    if text.startswith("/help") or text.startswith("/start"):
+        telegram.send_text("Commands\n/new: make a new Reel now\n/postnow: post the approved Reel now\n"
+                           "/status: queue and posting accounts\n\nSend a video or photo to post it.\n"
+                           "Under each Reel: ✅ Post at 19:00 · 🚀 Post now · 🔄 New design · ❌ Skip")
+        return
     if msg.get("text", "").startswith("/postnow"):
         pending = state.get("pending")
         if pending and pending["status"] == "approved":
