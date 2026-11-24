@@ -76,3 +76,12 @@ def download(file_id, out_path):
     with open(out_path, "wb") as f:
         f.write(r.content)
     return out_path
+
+
+def send_video(video_path, caption, buttons):
+    """A video with one row of buttons: buttons = [(label, callback_data), ...]."""
+    markup = {"inline_keyboard": [[{"text": t, "callback_data": d} for t, d in buttons]]}
+    with open(video_path, "rb") as f:
+        return _api("sendVideo", data={"chat_id": config.TELEGRAM_CHAT_ID, "caption": caption[:1024],
+                                       "supports_streaming": "true", "reply_markup": json.dumps(markup)},
+                    files={"video": f})["message_id"]

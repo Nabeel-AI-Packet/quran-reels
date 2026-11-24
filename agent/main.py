@@ -151,6 +151,7 @@ def handle_message(msg, state):
     if text.startswith("/help") or text.startswith("/start"):
         telegram.send_text("Commands\n/new: make a new Reel now\n/postnow: post the approved Reel now\n"
                            "/status: queue and posting accounts\n\nSend a video or photo to post it.\n"
+                           "Send a nature video with the caption #clip to add it to the Reel footage.\n"
                            "Under each Reel: ✅ Post at 19:00 · 🚀 Post now · 🔄 New design · ❌ Skip")
         return
     if msg.get("text", "").startswith("/postnow"):
@@ -183,6 +184,10 @@ def handle_button(cb, state):
     if action == "up":
         choice, _, uid = post_id.partition(":")
         handle_upload_button(cb, state, choice, uid)
+        return
+    if action == "clip":
+        choice, _, cid = post_id.partition(":")
+        handle_clip_button(cb, choice, cid)
         return
     pending = state.get("pending")
     if not pending or pending["id"] != post_id or pending["status"] != "waiting":
@@ -309,8 +314,87 @@ def raw_url(name):
     return f"https://raw.githubusercontent.com/{config.REPO}/{config.BRANCH}/media/{name}"
 
 
+CLIPS = os.path.join(ROOT, "assets", "clips")
+CLIPS_INDEX = os.path.join(CLIPS, "clips.json")
+
+
+def add_own_clip(msg, f):
+    """'#clip' on a video: add it to the footage library (your own pick, so no review needed)."""
+    os.makedirs(CLIPS, exist_ok=True)
+    cid = f"own-{msg['message_id']}"
+    with tempfile.TemporaryDirectory() as tmp:
+        raw = os.path.join(tmp, "raw")
+        telegram.download(f["file_id"], raw)
+        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", raw],
+                           capture_output=True, text=True)
+        dur = float(r.stdout.strip() or 0)
+        start = max(0.0, dur / 2 - 6)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{start:.2f}", "-t", "12", "-i", raw, "-an",
+                        "-vf", "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,"
+                        "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "slow", "-crf", "24",
+                        "-movflags", "+faststart", os.path.join(CLIPS, cid + ".mp4")], check=True)
+    index = load(CLIPS_INDEX, [])
+    note = (msg.get("caption") or "").replace("#clip", "").strip()
+    index.append({"id": cid, "file": cid + ".mp4", "status": "approved", "licence": "added by the owner",
+                  "source": note, "credit": "", "topic": "own"})
+    save(CLIPS_INDEX, index)
+    n = sum(1 for c in index if c.get("status", "approved") == "approved")
+    telegram.send_text(f"🎞 Added to the footage library ({n} clips). New Reels will use it.")
+
+
+def review_clips():
+    """Sends new library clips (from the fetch-clips job) for a Keep / Remove decision, 5 at a time."""
+    index = load(CLIPS_INDEX, [])
+    waiting = [c for c in index if c.get("status") == "pending" and not c.get("asked")][:5]
+    for c in waiting:
+        path = os.path.join(CLIPS, c["file"])
+        if not os.path.exists(path):
+            c["status"] = "removed"
+            continue
+        c["asked"] = True
+        save(CLIPS_INDEX, index)                 # never ask twice, even if sending fails
+        telegram.send_video(path, f"New footage for your Reels: {c.get('topic', '')}\n{c.get('licence', '')}",
+                            [("✅ Keep", f"clip:keep:{c['id']}"), ("❌ Remove", f"clip:drop:{c['id']}")])
+    save(CLIPS_INDEX, index)
+
+
+def handle_clip_button(cb, choice, cid):
+    index = load(CLIPS_INDEX, [])
+    c = next((x for x in index if x["id"] == cid), None)
+    if not c or c.get("status") != "pending":
+        telegram.answer(cb["id"], "Already handled.")
+        return
+    if choice == "keep":
+        c["status"] = "approved"
+        telegram.answer(cb["id"], "Kept")
+    else:
+        c["status"] = "removed"                  # the record stays so it's never fetched again
+        path = os.path.join(CLIPS, c["file"])
+        if os.path.exists(path):
+            os.remove(path)
+        telegram.answer(cb["id"], "Removed")
+    save(CLIPS_INDEX, index)
+    msg = cb.get("message", {})
+    try:
+        telegram._api("editMessageReplyMarkup", data={"chat_id": config.TELEGRAM_CHAT_ID, "message_id": msg.get("message_id"),
+                                                     "reply_markup": json.dumps({"inline_keyboard": []})})
+        telegram._api("editMessageCaption", data={"chat_id": config.TELEGRAM_CHAT_ID, "message_id": msg.get("message_id"),
+                                                 "caption": "✅ Kept" if choice == "keep" else "❌ Removed"})
+    except RuntimeError:
+        pass
+
+
 def handle_upload(msg, state):
     """A video or photo from the approver: ask where to post it (nothing is posted without a tap)."""
+    if "#clip" in (msg.get("caption") or "").lower():
+        f = msg.get("video") or (msg.get("document") if str(msg.get("document", {}).get("mime_type", "")).startswith("video/") else None)
+        if not f:
+            telegram.send_text("#clip works with videos only.")
+        elif f.get("file_size", 0) > 20 * 1024 * 1024:
+            telegram.send_text("This video is over 20 MB, the most a Telegram bot can download. Send a shorter one.")
+        else:
+            add_own_clip(msg, f)
+        return
     if msg.get("video"):
         f, kind, ext = msg["video"], "video", ".mp4"
     elif msg.get("photo"):
@@ -420,6 +504,7 @@ def poll_once(state, wait):
         save(STATE, state)
     publish_if_due(state)
     process_uploads(state)
+    review_clips()
     if not config.TELEGRAM_CHAT_ID:
         return                                   # no approver connected yet: nothing to send to
     now = datetime.now(ZoneInfo(config.TIMEZONE))

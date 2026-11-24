@@ -1,7 +1,8 @@
-"""Builds the nature-footage library in assets/clips from free sources that need no account:
+"""Adds candidate nature footage to assets/clips from Wikimedia Commons (no account needed):
+only CC0, public domain or CC BY (credited in captions).
 
-* Wikimedia Commons - only CC0, public domain, or CC BY (credited in captions)
-* NASA Image and Video Library - Earth and space footage (not copyrighted; no endorsement implied)
+New clips are saved as "pending": the Telegram bot shows each one to you with Keep / Remove,
+and only kept clips are used in Reels. Removed ones stay listed so they're never fetched again.
 
 Each clip is cut to 10 s from the middle of the video, center-cropped to 1080x1920, silent.
 Licence details for every clip go into assets/clips/clips.json.
@@ -13,6 +14,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 
 import requests
 
@@ -23,8 +25,8 @@ UA = {"User-Agent": "quran-reels/1.0 (github.com/Nabeel-AI-Packet/quran-reels)"}
 
 COMMONS = ["waterfall", "ocean waves", "sea waves beach", "river stream", "mountains clouds timelapse",
            "clouds timelapse", "sunset timelapse", "sunrise", "forest", "rain drops", "lightning storm",
-           "desert dunes", "snow mountains", "night sky stars timelapse", "aurora", "lake reflection"]
-NASA = ["earth from space", "ISS earth view", "aurora from space", "galaxy", "nebula", "sunrise over earth"]
+           "desert dunes", "snow mountains", "night sky stars timelapse", "aurora borealis", "lake reflection",
+           "earth from the International Space Station", "milky way timelapse", "fog valley", "volcano lava"]
 # never behind Quran recitation: people, music, worship of other faiths, flags, sport, vehicles
 EXCLUDE = re.compile(r"\b(people|person|man|men|woman|women|girl|boy|child|kid|crowd|tourist|surf|swim|dance|"
                      r"music|concert|party|church|cathedral|temple|statue|buddha|cross|christmas|flag|"
@@ -33,12 +35,25 @@ OK_LICENCE = re.compile(r"^(cc0|public domain|pd[- ].*|cc by \d(\.\d)?|cc-by-\d(
 PER_QUERY = int(sys.argv[1]) if len(sys.argv) > 1 else 3
 
 
+def polite_get(url, **kw):
+    """Wikimedia limits request rates: wait between calls and back off when told to."""
+    for attempt in range(5):
+        time.sleep(3)
+        r = requests.get(url, headers=UA, timeout=kw.pop("timeout", 60), **kw)
+        if r.status_code != 429:
+            r.raise_for_status()
+            return r
+        wait = int(r.headers.get("Retry-After", "0") or 0) or 30 * (attempt + 1)
+        print(f"rate limited, waiting {wait}s")
+        time.sleep(wait)
+    raise RuntimeError("still rate limited")
+
+
 def commons(query):
-    r = requests.get("https://commons.wikimedia.org/w/api.php", headers=UA, timeout=60, params={
+    r = polite_get("https://commons.wikimedia.org/w/api.php", params={
         "action": "query", "format": "json", "generator": "search", "gsrnamespace": 6,
         "gsrsearch": f"filetype:video {query}", "gsrlimit": 25, "prop": "videoinfo",
         "viprop": "url|size|extmetadata|derivatives"})
-    r.raise_for_status()
     for p in (r.json().get("query", {}).get("pages") or {}).values():
         vi = (p.get("videoinfo") or [{}])[0]
         meta = vi.get("extmetadata", {})
@@ -62,26 +77,6 @@ def commons(query):
                "topic": query}
 
 
-def nasa(query):
-    r = requests.get("https://images-api.nasa.gov/search", params={"q": query, "media_type": "video"}, timeout=60)
-    r.raise_for_status()
-    for item in r.json().get("collection", {}).get("items", [])[:25]:
-        d = (item.get("data") or [{}])[0]
-        text = f"{d.get('title', '')} {d.get('description', '')}"
-        if re.search(r"©|copyright|courtesy of", text, re.I) or EXCLUDE.search(text):
-            continue
-        try:
-            files = requests.get(item["href"], timeout=60).json()
-        except Exception:
-            continue
-        mp4 = [u for u in files if u.endswith(".mp4")]
-        url = next((u for u in mp4 if "~large" in u), None) or next((u for u in mp4 if "~orig" in u), None)
-        if url:
-            yield {"id": f"nasa-{d['nasa_id']}", "url": url.replace("http://", "https://"),
-                   "source": f"https://images.nasa.gov/details/{d['nasa_id']}", "licence": "NASA (not copyrighted)",
-                   "author": d.get("center", "NASA"), "credit": "", "topic": query}
-
-
 def duration(path):
     r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
                        capture_output=True, text=True)
@@ -94,6 +89,7 @@ def duration(path):
 def make_clip(c, dest):
     with tempfile.TemporaryDirectory() as tmp:
         raw = os.path.join(tmp, "raw")
+        time.sleep(2)
         with requests.get(c["url"], headers=UA, stream=True, timeout=300) as r:
             r.raise_for_status()
             size = 0
@@ -123,7 +119,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     index = json.load(open(INDEX)) if os.path.exists(INDEX) else []
     have = {c["id"] for c in index}
-    jobs = [(q, commons) for q in COMMONS] + [(q, nasa) for q in NASA]
+    jobs = [(q, commons) for q in COMMONS]
     for query, source in jobs:
         got = 0
         try:
@@ -143,6 +139,7 @@ def main():
                 print(f"skip {c['id']}: {e}")
                 continue
             c["file"] = os.path.basename(dest)
+            c["status"] = "pending"                 # shown to you in Telegram before any use
             c.pop("url")
             index.append(c)
             have.add(c["id"])

@@ -29,7 +29,8 @@ def clip_files():
         index = json.load(open(os.path.join(CLIPS, "clips.json")))
     except (OSError, ValueError):
         return []
-    return [c for c in index if os.path.exists(os.path.join(CLIPS, c["file"]))]
+    return [c for c in index if c.get("status", "approved") == "approved"
+            and os.path.exists(os.path.join(CLIPS, c.get("file", "")))]
 
 
 def scene_files():
