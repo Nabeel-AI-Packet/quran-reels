@@ -236,7 +236,7 @@
   {
     "id": "rh1",
     "key": "55:1-13",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Surah Ar-Rahman · Part 1",
     "caption_en": "Which of the favours of your Lord will you deny?",
     "caption_pl": "Którą z łask waszego Pana będziecie zaprzeczać?"
@@ -244,7 +244,7 @@
   {
     "id": "ys1",
     "key": "36:1-12",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Surah Ya-Sin · Part 1",
     "caption_en": "The heart of the Quran. Listen to the opening of Ya-Sin.",
     "caption_pl": "Serce Koranu. Posłuchaj początku Sury Ja-Sin."
