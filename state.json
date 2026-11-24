@@ -1,8 +1,20 @@
 {
-  "offset": 602951133,
-  "pending": null,
+  "offset": 602951139,
+  "pending": {
+    "id": "r02",
+    "message_id": 62,
+    "variant": 0,
+    "platforms": [
+      "all"
+    ],
+    "caption": "Whatever you face today, Allah knows you were made able to bear it.\n\nCokolwiek dziś przeżywasz, Allah wie, że jesteś w stanie to unieść.\n\n📖 Al-Baqara 2:286\n🎙 Mishary Alafasy\n🌐 Saheeh International (EN), J. Bielawski (PL)\n\n#quran #quranrecitation #islam #muslim #islamicreminders #dua #koran #islampolska",
+    "caption_x": "Whatever you face today, Allah knows you were made able to bear it.\n\n📖 Al-Baqara 2:286 · Mishary Alafasy\n#quran #islam",
+    "title": "Al-Baqara 2:286",
+    "status": "waiting",
+    "reciter": "Mishary Alafasy"
+  },
   "last_made": "2026-11-24",
-  "reciter_i": 0,
-  "bg_i": 0,
+  "reciter_i": 2,
+  "bg_i": 2,
   "uploads": {}
 }
