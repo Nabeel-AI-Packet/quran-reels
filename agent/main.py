@@ -52,6 +52,8 @@ def video_url(post_id, variant):
 # ---------- make ----------
 
 def make(state, variant=0, item=None):
+    if not config.TELEGRAM_CHAT_ID:
+        raise RuntimeError("Add the TELEGRAM_CHAT_ID secret first (message the bot, then run poll).")
     queue = load(QUEUE, [])
     if item is None:
         if state.get("pending"):
@@ -165,6 +167,8 @@ def poll(state):
         elif "callback_query" in u:
             handle_button(u["callback_query"], state)
     publish_if_due(state)
+    if not config.TELEGRAM_CHAT_ID:
+        return                                   # no approver connected yet: nothing to send to
     now = datetime.now(ZoneInfo(config.TIMEZONE))
     if (now.weekday() in config.POST_WEEKDAYS and now.hour >= config.MAKE_HOUR
             and state.get("last_made") != now.date().isoformat()):

@@ -8,8 +8,10 @@ from . import config
 
 def _api(method, **kw):
     r = requests.post(f"https://api.telegram.org/bot{config.TELEGRAM_TOKEN}/{method}", timeout=120, **kw)
-    r.raise_for_status()
-    return r.json()["result"]
+    data = r.json() if r.content else {}
+    if not data.get("ok"):
+        raise RuntimeError(f"Telegram refused {method}: {data.get('description', r.status_code)}")
+    return data["result"]
 
 
 def send_text(text, chat_id=None):
