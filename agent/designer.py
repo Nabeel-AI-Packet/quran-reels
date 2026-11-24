@@ -24,7 +24,7 @@ def _find(*names):
     raise RuntimeError(f"No font found for {names}")
 
 
-FONT_AR = _find("Amiri Quran", "Amiri", "FreeSerif")
+FONT_AR = _find("Amiri Quran:style=Regular", "Amiri:style=Regular", "FreeSerif")
 FONT_UI = _find("Inter:style=Medium", "DejaVu Sans")
 FONT_UI_BOLD = _find("Inter:style=SemiBold", "DejaVu Sans:style=Bold")
 
@@ -106,11 +106,16 @@ def wrap(draw, text, f, max_w):
     return lines
 
 
+def line_h(f):
+    ascent, descent = f.getmetrics()
+    return ascent + descent
+
+
 def draw_centered(draw, lines, f, y, fill, gap, direction=None):
     for line in lines:
         w = draw.textlength(line, font=f, direction=direction)
         draw.text(((W - w) / 2, y), line, font=f, fill=fill, direction=direction)
-        y += f.size + gap
+        y += line_h(f) + gap
     return y
 
 
@@ -144,15 +149,15 @@ def frame(bg, verse, mode, alpha=1.0):
             en_lines = wrap(d, verse["english"], f_en, W - 300)
             f_pl = font(FONT_UI, int(size * 0.37))
             pl_lines = wrap(d, verse["polish"], f_pl, W - 320)
-            ar_gap = int(size * 0.63)
-            total = (len(ar_lines) * (size + ar_gap) + 60 + len(en_lines) * (f_en.size + 14)
-                     + 40 + len(pl_lines) * (f_pl.size + 12))
+            ar_gap = int(size * 0.15)
+            total = (len(ar_lines) * (line_h(f_ar) + ar_gap) + 60 + len(en_lines) * (line_h(f_en) + 14)
+                     + 40 + len(pl_lines) * (line_h(f_pl) + 12))
             if total <= 860:
                 break
         y = 1030 - total / 2
         y = draw_centered(d, ar_lines, f_ar, y, CREAM + (a,), ar_gap, direction="rtl")
-        d.line((W / 2 - 60, y + 14, W / 2 + 60, y + 14), fill=GOLD + (a,), width=2)
-        y += 60
+        d.line((W / 2 - 60, y + 20, W / 2 + 60, y + 20), fill=GOLD + (a,), width=2)
+        y += 56
         y = draw_centered(d, en_lines, f_en, y, CREAM + (a,), 14)
         y += 30
         draw_centered(d, pl_lines, f_pl, y, SOFT + (int(a * 0.85),), 12)

@@ -11,7 +11,7 @@ RECITERS = {
 DEFAULT_RECITER = "Yasser Al-Dosari"
 
 # Verse text: Uthmani Arabic, Saheeh International (English), Jozef Bielawski (Polish).
-EDITIONS = ("quran-uthmani", "en.sahih", "pl.bielawski")
+EDITIONS = ("quran-uthmani", "en.sahih", "pl.bielawskiego")
 TRANSLATION_CREDIT = "Saheeh International (EN), J. Bielawski (PL)"
 
 # When approved Reels go live, in your local time.
