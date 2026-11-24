@@ -95,9 +95,7 @@ def make(state, variant=0, item=None):
         out, f"New Reel ready: {text['reference']} · {reciter} · {seconds:.0f}s\n\n{caption}", item["id"])
     state["last_made"] = datetime.now(ZoneInfo(config.TIMEZONE)).date().isoformat()
     weekday = datetime.now(ZoneInfo(config.TIMEZONE)).weekday()
-    platforms = [p for p, days in config.POST_DAYS.items() if weekday in days] or ["instagram"]
-    if config.POSTER != "buffer":                # TikTok and X are only posted through Buffer
-        platforms = ["instagram"]
+    platforms = ["all"] if config.POSTER == "buffer" else ["instagram"]   # all = every account in Buffer
     state["pending"] = {"id": item["id"], "message_id": msg_id, "variant": variant, "platforms": platforms,
                         "caption": caption, "caption_x": build_caption_x(item, reciter, text["reference"]),
                         "title": text["reference"], "status": "waiting", "reciter": reciter}
@@ -210,7 +208,7 @@ def _remove_video(post_id):
                 os.remove(os.path.join(MEDIA, name))
 
 
-NAMES = {"instagram": "Instagram", "tiktok": "TikTok", "x": "X"}
+NAMES = {"instagram": "Instagram", "tiktok": "TikTok", "youtube": "YouTube", "facebook": "Facebook", "x": "X"}
 
 
 def buffer_job(state, job, url, kind="video"):
@@ -224,9 +222,15 @@ def buffer_job(state, job, url, kind="video"):
         chans = buffer.channels()
         job["connected"] = chans
         for p in job["platforms"]:
-            if p not in chans:
+            if p != "all" and p not in chans:
                 done[p] = "not connected in Buffer"
     chans = job["connected"]
+    if job["platforms"] == ["all"]:
+        job["platforms"] = [p for p in buffer.ORDER if p in chans
+                            and not (kind == "image" and p in buffer.VIDEO_ONLY)] or ["instagram"]
+        for p in job["platforms"]:
+            if p not in chans:
+                done[p] = "not connected in Buffer"
     for p in job["platforms"]:
         if p in done or p in posts or p not in chans:
             continue
@@ -312,11 +316,10 @@ def handle_upload(msg, state):
     uid = f"u{msg['message_id']}"
     state.setdefault("uploads", {})[uid] = {
         "file_id": f["file_id"], "kind": kind, "ext": ext, "caption": msg.get("caption") or config.HASHTAGS,
+        "title": (msg.get("caption") or "Quran recitation").split("\n")[0][:100],
         "status": "asking"}
-    options = [("📤 Instagram", f"up:ig:{uid}")]
-    if kind == "video" and config.POSTER == "buffer":
-        options.append(("📤 Instagram + TikTok + X", f"up:all:{uid}"))
-    options.append(("✖ Cancel", f"up:no:{uid}"))
+    options = [("📤 Post to all accounts", f"up:all:{uid}"), ("📸 Instagram only", f"up:ig:{uid}"),
+               ("✖ Cancel", f"up:no:{uid}")]
     note = "" if msg.get("caption") else "\n(No caption was sent, so only your hashtags will be used.)"
     state["uploads"][uid]["ask_id"] = telegram.ask(f"Post this {kind} now?{note}", options)
 
@@ -335,7 +338,7 @@ def handle_upload_button(cb, state, choice, uid):
         state["uploads"].pop(uid)
         telegram.send_text("Posting your own files needs Buffer: add the BUFFER_API_KEY secret on GitHub.")
         return
-    job["platforms"] = ["instagram"] if choice == "ig" else ["instagram", "tiktok", "x"]
+    job["platforms"] = ["instagram"] if choice == "ig" else ["all"]
     job["status"] = "posting"
     job["name"] = f"{uid}{job['ext']}"
     os.makedirs(MEDIA, exist_ok=True)

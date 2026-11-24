@@ -13,7 +13,10 @@ import requests
 from . import config
 
 API = "https://api.buffer.com"
-SERVICES = {"instagram": "instagram", "tiktok": "tiktok", "twitter": "x", "x": "x"}
+SERVICES = {"instagram": "instagram", "tiktok": "tiktok", "youtube": "youtube", "facebook": "facebook",
+            "twitter": "x", "x": "x"}
+ORDER = ("instagram", "tiktok", "youtube", "facebook", "x")
+VIDEO_ONLY = {"youtube"}                 # no photo posts there
 
 _ORGS = "query { account { organizations { id name } } }"
 _CHANNELS = """query Channels($input: ChannelsInput!) {
@@ -69,7 +72,14 @@ def _metadata(platform, title, kind="video"):
             return {"instagram": {"type": "post"}}
         return {"instagram": {"type": "reel", "shouldShareToFeed": True}}
     if platform == "tiktok":
-        return {"tiktok": {"title": title[:90], "isAiGenerated": False}}
+        if kind == "image":
+            return {"tiktok": {"title": title[:90]}}           # title is for photo posts only
+        return {"tiktok": {"isAiGenerated": False}}
+    if platform == "youtube":                                  # posted as a Short (vertical, < 3 min)
+        return {"youtube": {"title": (title or "Quran recitation")[:100], "categoryId": "27",
+                            "privacy": "public", "madeForKids": False, "isAiGenerated": False}}
+    if platform == "facebook":
+        return {"facebook": {"type": "post" if kind == "image" else "reel"}}
     return {}
 
 
