@@ -1,8 +1,20 @@
 {
-  "offset": 602951169,
-  "pending": null,
+  "offset": 602951180,
+  "pending": {
+    "id": "f11",
+    "message_id": 172,
+    "variant": 0,
+    "platforms": [
+      "all"
+    ],
+    "caption": "Recite them at night; they are enough for you.\n\nRecytuj je w nocy, one ci wystarczą.\n\n📖 Al-Baqara 2:285–286\n🎙 Khalid Al-Qahtani\n🌐 Saheeh International (EN), J. Bielawski (PL)\n\n#quran #quranrecitation #islam #muslim #islamicreminders #dua #koran #islampolska",
+    "caption_x": "Recite them at night; they are enough for you.\n\n📖 Al-Baqara 2:285–286 · Khalid Al-Qahtani\n#quran #islam",
+    "title": "Al-Baqara 2:285–286",
+    "status": "waiting",
+    "reciter": "Khalid Al-Qahtani"
+  },
   "last_made": "2026-11-24",
-  "reciter_i": 24,
-  "bg_i": 24,
+  "reciter_i": 27,
+  "bg_i": 27,
   "uploads": {}
 }

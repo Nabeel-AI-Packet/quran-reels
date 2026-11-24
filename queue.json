@@ -208,7 +208,7 @@
   {
     "id": "k01",
     "key": "18:1-5",
-    "status": "queued",
+    "status": "skipped",
     "hook": "Surah Al-Kahf · Part 1",
     "caption_en": "It's Friday: begin Surah Al-Kahf with us.",
     "caption_pl": "Jest piątek: zacznij z nami Surę Al-Kahf."
@@ -216,10 +216,12 @@
   {
     "id": "r10",
     "key": "112:1-4",
-    "status": "queued",
+    "status": "posted",
     "hook": "Four verses, a third of the Quran",
     "caption_en": "Surah Al-Ikhlas: the oneness of Allah in four short verses. Share it with someone who needs a reminder.",
-    "caption_pl": "Sura Al-Ikhlas: jedność Allaha w czterech krótkich wersetach. Udostępnij komuś, kto potrzebuje przypomnienia."
+    "caption_pl": "Sura Al-Ikhlas: jedność Allaha w czterech krótkich wersetach. Udostępnij komuś, kto potrzebuje przypomnienia.",
+    "media_id": "{}",
+    "posted_at": "2026-11-24T20:22:24.937918"
   },
   {
     "id": "f11",
