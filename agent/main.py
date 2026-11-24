@@ -141,11 +141,10 @@ def handle_message(msg, state):
         return
     if msg.get("text", "").startswith("/postnow"):
         pending = state.get("pending")
-        if pending and pending["status"] == "approved":
+        if pending and pending["status"] in ("approved", "waiting"):
+            pending["status"] = "approved"              # /postnow also approves a waiting Reel
             pending["now"] = True
-            telegram.send_text("🚀 Posting the approved Reel now.")
-        elif pending and pending["status"] == "waiting":
-            telegram.send_text("Tap 🚀 Post now under the Reel first.")
+            telegram.send_text("🚀 Posting the Reel now. The links follow in a few minutes.")
         else:
             telegram.send_text("No approved Reel is waiting.")
         return
@@ -282,8 +281,8 @@ def git_save(paths, message):
         return
     git("-c", "user.name=reel-agent", "-c", "user.email=reel-agent@users.noreply.github.com",
         "commit", "-q", "-m", message)
-    git("pull", "-q", "--rebase", "--autostash")
-    git("push", "-q")
+    git("pull", "-q", "--rebase", "--autostash", "origin", config.BRANCH)
+    git("push", "-q", "origin", f"HEAD:{config.BRANCH}")
 
 
 def raw_url(name):

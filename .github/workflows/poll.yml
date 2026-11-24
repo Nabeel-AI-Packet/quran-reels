@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main            # newest state, on the branch (not the commit the run was queued at)
       - name: Install tools
         run: |
           sudo apt-get update -qq
@@ -43,8 +45,8 @@ jobs:
           git add -A queue.json state.json media
           if ! git diff --cached --quiet; then
             git commit -q -m "agent: poll"
-            git pull -q --rebase
-            git push -q
+            git pull -q --rebase -X theirs origin main
+            git push -q origin HEAD:main
           fi
       - name: Keep listening
         if: always()
@@ -52,9 +54,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # GitHub's 10-minute timer is unreliable, so each run starts the next one and the bot
-          # keeps listening (what the schedule above is meant to do). Never more than one waiting.
-          waiting=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/poll.yml/runs?status=queued" --jq '.total_count')
-          pending=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/poll.yml/runs?status=pending" --jq '.total_count')
-          if [ "$waiting" = "0" ] && [ "$pending" = "0" ]; then
-            gh workflow run poll.yml --ref "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY"
-          fi
+          # keeps listening. GitHub keeps at most one run waiting, so this never piles up.
+          gh workflow run poll.yml --ref main -R "$GITHUB_REPOSITORY"
