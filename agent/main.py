@@ -18,7 +18,6 @@ from . import buffer, config, designer, instagram, quran, telegram, uploadpost
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUEUE = os.path.join(ROOT, "queue.json")
-SUGGESTIONS = os.path.join(ROOT, "suggestions.json")      # written by the Claude video scout
 STATE = os.path.join(ROOT, "state.json")
 MEDIA = os.path.join(ROOT, "media")
 
@@ -272,28 +271,6 @@ def publish_buffer(state, pending):
     telegram.send_text("🎉 Reel published\n" + "\n".join(lines))
 
 
-# ---------- video ideas found by the Claude scout (agent/SCOUT.md) ----------
-
-ICONS = {"tiktok": "🎵 TikTok", "youtube": "▶️ YouTube", "facebook": "📘 Facebook", "x": "✖️ X"}
-
-
-def send_suggestions():
-    ideas = load(SUGGESTIONS, [])
-    new = [i for i in ideas if not i.get("sent")][:10]
-    if not new:
-        return
-    lines = ["💡 Video ideas from the scout"]
-    for n, i in enumerate(new, 1):
-        lines.append(f"\n{n}. {ICONS.get(i.get('platform', ''), i.get('platform', ''))}: {i.get('title', '')}\n"
-                     f"{i.get('why', '')}\n{i['url']}")
-    lines.append("\nFor inspiration: reposting someone's video needs their permission.")
-    telegram.send_text("\n".join(lines)[:4000])
-    today = datetime.now(ZoneInfo(config.TIMEZONE)).date().isoformat()
-    for i in new:
-        i["sent"] = today
-    save(SUGGESTIONS, ideas)
-
-
 # ---------- your own uploads: send a video or photo to the bot ----------
 
 def git_save(paths, message):
@@ -413,7 +390,6 @@ def poll_once(state, wait):
         save(STATE, state)
     publish_if_due(state)
     process_uploads(state)
-    send_suggestions()
     if not config.TELEGRAM_CHAT_ID:
         return                                   # no approver connected yet: nothing to send to
     now = datetime.now(ZoneInfo(config.TIMEZONE))
