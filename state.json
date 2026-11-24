@@ -1,5 +1,5 @@
 {
-  "offset": 602951112,
+  "offset": 602951122,
   "pending": {
     "id": "r01",
     "message_id": 7,
@@ -17,5 +17,6 @@
   },
   "last_made": "2026-11-24",
   "reciter_i": 0,
-  "bg_i": 0
+  "bg_i": 0,
+  "uploads": {}
 }
