@@ -3,9 +3,11 @@ name: poll
 on:
   schedule:
     - cron: '*/10 * * * *'
+    - cron: '17 * * * *'      # hourly backup trigger: GitHub sometimes skips frequent schedules
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write            # lets a run start the next one while a Reel is waiting or approved
 concurrency:
   group: reel-agent
   cancel-in-progress: false
@@ -43,4 +45,15 @@ jobs:
             git commit -q -m "agent: poll"
             git pull -q --rebase
             git push -q
+          fi
+      - name: Keep listening while a Reel is in progress
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # GitHub's timer is unreliable, so while a Reel awaits a tap or its 19:00 posting,
+          # each run starts the next one. Stops by itself when nothing is pending.
+          if python3 -c "import json,sys; sys.exit(0 if json.load(open('state.json')).get('pending') else 1)"; then
+            waiting=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/poll.yml/runs?status=queued" --jq '.total_count')
+            if [ "$waiting" = "0" ]; then gh workflow run poll.yml --ref "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY"; fi
           fi

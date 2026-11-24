@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: reel-agent
   cancel-in-progress: false
@@ -41,3 +42,8 @@ jobs:
             git pull -q --rebase
             git push -q
           fi
+      - name: Start listening for the buttons
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run poll.yml --ref "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY"
