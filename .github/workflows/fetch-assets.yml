@@ -7,9 +7,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-concurrency:
-  group: reel-agent
-  cancel-in-progress: false
 jobs:
   fetch:
     runs-on: ubuntu-latest
