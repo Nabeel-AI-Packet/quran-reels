@@ -32,6 +32,7 @@ def load(path, default):
 
 
 def save(path, data):
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
@@ -346,6 +347,8 @@ def review_clips():
     """Sends new library clips (from the fetch-clips job) for a Keep / Remove decision, 5 at a time."""
     index = load(CLIPS_INDEX, [])
     waiting = [c for c in index if c.get("status") == "pending" and not c.get("asked")][:5]
+    if not waiting:
+        return                                   # nothing new: no file to write
     for c in waiting:
         path = os.path.join(CLIPS, c["file"])
         if not os.path.exists(path):
