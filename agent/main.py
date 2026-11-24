@@ -13,7 +13,7 @@ import traceback
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from . import config, designer, instagram, quran, telegram, uploadpost
+from . import buffer, config, designer, instagram, quran, telegram, uploadpost
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUEUE = os.path.join(ROOT, "queue.json")
@@ -40,6 +40,15 @@ def build_caption(item, reciter, reference):
         f"📖 {reference}\n🎙 {reciter}\n🌐 {config.TRANSLATION_CREDIT}",
         config.HASHTAGS,
     ])
+
+
+def build_caption_x(item, reciter, reference):
+    """X allows 280 characters: the English line, the reference and two hashtags."""
+    tail = f"\n\n📖 {reference} · {reciter}\n#quran #islam"
+    text = item["caption_en"]
+    if len(text) + len(tail) > 280:
+        text = text[:280 - len(tail) - 1].rsplit(" ", 1)[0] + "…"
+    return text + tail
 
 
 def video_name(post_id, variant):
@@ -84,8 +93,11 @@ def make(state, variant=0, item=None):
     state["last_made"] = datetime.now(ZoneInfo(config.TIMEZONE)).date().isoformat()
     weekday = datetime.now(ZoneInfo(config.TIMEZONE)).weekday()
     platforms = [p for p, days in config.POST_DAYS.items() if weekday in days] or ["instagram"]
+    if config.POSTER != "buffer":                # TikTok and X are only posted through Buffer
+        platforms = ["instagram"]
     state["pending"] = {"id": item["id"], "message_id": msg_id, "variant": variant, "platforms": platforms,
-                        "caption": caption, "status": "waiting", "reciter": reciter}
+                        "caption": caption, "caption_x": build_caption_x(item, reciter, text["reference"]),
+                        "title": text["reference"], "status": "waiting", "reciter": reciter}
 
 
 # ---------- poll ----------
@@ -110,7 +122,14 @@ def handle_message(msg):
         queue = load(QUEUE, [])
         left = sum(1 for q in queue if q.get("status", "queued") == "queued")
         posted = sum(1 for q in queue if q.get("status") == "posted")
-        telegram.send_text(f"Posted: {posted}\nWaiting in queue: {left}")
+        via = config.POSTER
+        if via == "buffer":
+            try:
+                names = ", ".join(NAMES.get(p, p) for p in buffer.channels())
+                via = f"Buffer → {names}" if names else "Buffer (no accounts connected yet)"
+            except RuntimeError as e:
+                via = f"Buffer ⚠️ {e}"
+        telegram.send_text(f"Posted: {posted}\nWaiting in queue: {left}\nPosting via: {via}")
 
 
 def handle_button(cb, state):
@@ -150,11 +169,67 @@ def _remove_video(post_id):
                 os.remove(os.path.join(MEDIA, name))
 
 
+NAMES = {"instagram": "Instagram", "tiktok": "TikTok", "x": "X"}
+
+
+def publish_buffer(state, pending):
+    """Posts to every connected platform once, then reports. Safe to run again: a platform
+    that already has a Buffer post is never posted twice."""
+    posts = pending.setdefault("buffer_posts", {})      # platform -> Buffer post id | "unknown"
+    done = pending.setdefault("done", {})               # platform -> link | "error: ..." | "unknown"
+    errors = pending.setdefault("errors", {})
+    if "connected" not in pending:
+        chans = buffer.channels()
+        pending["connected"] = chans
+        for p in pending.get("platforms", ["instagram"]):
+            if p not in chans:
+                done[p] = "not connected in Buffer"
+    chans = pending["connected"]
+    url = video_url(pending["id"], pending["variant"])
+    for p in pending.get("platforms", ["instagram"]):
+        if p in done or p in posts or p not in chans:
+            continue
+        text = (pending.get("caption_x") or pending["caption"][:280]) if p == "x" else pending["caption"]
+        try:
+            posts[p] = buffer.create(p, chans[p], text, url, pending.get("title", ""))
+        except buffer.Unsure as e:
+            posts[p] = "unknown"
+            done[p] = f"unknown ({e}) - check the app before posting again"
+        except RuntimeError as e:
+            errors[p] = errors.get(p, 0) + 1
+            if errors[p] >= 3:
+                done[p] = f"error: {e}"
+        save(STATE, state)                              # record each post at once (no doubles)
+    pending["status"] = "publishing"
+    waiting = {p: i for p, i in posts.items() if p not in done and i != "unknown"}
+    for p, (s, info) in buffer.wait(waiting).items():
+        if s == "sent":
+            done[p] = info or "posted"
+        elif s == "error":
+            done[p] = f"error: {info}"
+    if any(p not in done for p in pending.get("platforms", ["instagram"])):
+        return                                          # still processing: checked again next run
+    lines = []
+    for p in pending.get("platforms", ["instagram"]):
+        r = done[p]
+        icon = "✅" if r.startswith("http") or r == "posted" else ("➖" if r.startswith("not connected") else "⚠️")
+        lines.append(f"{icon} {NAMES.get(p, p)}: {r}")
+    if any(not (d.startswith("http") or d == "posted" or d.startswith("not connected")) for d in done.values()):
+        lines.append("\nFor ⚠️ platforms, post the video from the message above by hand.")
+    set_status(pending["id"], "posted", media_id=str(posts), posted_at=datetime.utcnow().isoformat())
+    _remove_video(pending["id"])
+    state["pending"] = None
+    telegram.send_text("🎉 Reel published\n" + "\n".join(lines))
+
+
 def publish_if_due(state):
     pending = state.get("pending")
-    if not pending or pending["status"] != "approved":
+    if not pending or pending["status"] not in ("approved", "publishing"):
         return
-    if datetime.now(ZoneInfo(config.TIMEZONE)).hour < config.POST_HOUR:
+    if pending["status"] == "approved" and datetime.now(ZoneInfo(config.TIMEZONE)).hour < config.POST_HOUR:
+        return
+    if config.POSTER == "buffer":
+        publish_buffer(state, pending)
         return
     if config.POSTER == "meta":
         media_id, link = instagram.publish_reel(video_url(pending["id"], pending["variant"]), pending["caption"])

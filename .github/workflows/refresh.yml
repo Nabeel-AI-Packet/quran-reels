@@ -27,6 +27,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           UPLOADPOST_API_KEY: ${{ secrets.UPLOADPOST_API_KEY }}
           UPLOADPOST_USER: ${{ secrets.UPLOADPOST_USER }}
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
           POSTER: ${{ vars.POSTER }}
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}

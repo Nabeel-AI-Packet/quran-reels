@@ -16,11 +16,12 @@ TRANSLATION_CREDIT = "Saheeh International (EN), J. Bielawski (PL)"
 # When approved Reels go live, in your local time.
 TIMEZONE = "Europe/Warsaw"
 # Where and on which days to post: 0=Mon ... 6=Sun. A Reel is made on every day
-# listed for any platform. Upload-Post's free plan allows 10 posts a month and no
-# TikTok; TikTok needs a paid plan (then connect TikTok in Upload-Post and fill in days).
+# listed for any platform. With Buffer (free) a Reel goes to every platform you connected
+# in Buffer on these days; platforms you didn't connect are skipped automatically.
 POST_DAYS = {
     "instagram": (1, 4),                  # Tuesday and Friday
-    "tiktok": (),                         # e.g. (0, 1, 2, 3, 4, 5, 6) for every day
+    "tiktok": (1, 4),
+    "x": (1, 4),
 }
 POST_WEEKDAYS = tuple(sorted({d for days in POST_DAYS.values() for d in days}))
 MAKE_HOUR = 7                             # the day's Reel arrives in Telegram from 07:00
@@ -31,9 +32,11 @@ HASHTAGS = "#quran #quranrecitation #islam #muslim #islamicreminders #dua #koran
 # Who may approve: the Telegram chat ID of the approver (set as a GitHub secret).
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
-# How Reels reach Instagram: "uploadpost" (Upload-Post service, no Meta app needed)
-# or "meta" (your own Meta developer app).
-POSTER = os.environ.get("POSTER") or "uploadpost"
+# How Reels are posted: "buffer" (Buffer, free: Instagram + TikTok + X, no developer apps),
+# "uploadpost" (Upload-Post) or "meta" (your own Meta app). Chosen automatically: Buffer
+# as soon as the BUFFER_API_KEY secret exists.
+BUFFER_API_KEY = os.environ.get("BUFFER_API_KEY", "")
+POSTER = os.environ.get("POSTER") or ("buffer" if BUFFER_API_KEY else "uploadpost")
 UPLOADPOST_API_KEY = os.environ.get("UPLOADPOST_API_KEY", "")
 UPLOADPOST_USER = os.environ.get("UPLOADPOST_USER", "")
 IG_TOKEN = os.environ.get("IG_TOKEN", "")
