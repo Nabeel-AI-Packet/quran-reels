@@ -1,5 +1,21 @@
 {
   "offset": 602951102,
-  "pending": null,
-  "last_made": "2026-11-24"
+  "pending": {
+    "id": "r01",
+    "message_id": 7,
+    "variant": 0,
+    "platforms": [
+      "instagram",
+      "tiktok",
+      "x"
+    ],
+    "caption": "Ease is promised twice, so it never comes alone. Whatever you're carrying today, relief is already on its way.\n\nUlga obiecana jest dwa razy. Cokolwiek dziś dźwigasz, ulga już nadchodzi.\n\n📖 Ash-Sharh 94:5–6\n🎙 Yasser Al-Dosari\n🌐 Saheeh International (EN), J. Bielawski (PL)\n\n#quran #quranrecitation #islam #muslim #islamicreminders #dua #koran #islampolska",
+    "caption_x": "Ease is promised twice, so it never comes alone. Whatever you're carrying today, relief is already on its way.\n\n📖 Ash-Sharh 94:5–6 · Yasser Al-Dosari\n#quran #islam",
+    "title": "Ash-Sharh 94:5–6",
+    "status": "waiting",
+    "reciter": "Yasser Al-Dosari"
+  },
+  "last_made": "2026-11-24",
+  "reciter_i": 0,
+  "bg_i": 0
 }
