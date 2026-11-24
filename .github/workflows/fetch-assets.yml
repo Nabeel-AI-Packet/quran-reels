@@ -20,7 +20,9 @@ jobs:
           mkdir -p assets/backgrounds assets/fonts
           if [ -f assets/incoming.txt ]; then
             while read -r name url; do
-              [ -n "$name" ] && curl -fsSL "$url" -o "assets/backgrounds/$name" && echo "got $name"
+              [ -z "$name" ] && continue
+              case "$name" in */*) dest="assets/$name";; *) dest="assets/backgrounds/$name";; esac
+              mkdir -p "$(dirname "$dest")" && curl -fsSL "$url" -o "$dest" && echo "got $dest"
             done < assets/incoming.txt
             rm assets/incoming.txt
           fi

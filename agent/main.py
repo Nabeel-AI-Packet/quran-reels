@@ -75,10 +75,9 @@ def make(state, variant=0, item=None):
     with tempfile.TemporaryDirectory() as tmp:
         audio = os.path.join(tmp, "recitation.mp3")
         durations = quran.fetch_audio(item["key"], reciter, audio)
-        verse = {**text, "hook": item["hook"], "reciter": reciter,
-                 "reciter_ar": config.RECITERS[reciter]["ar"]}
-        seconds = designer.render(verse, durations, audio, out,
-                                  background=state.get("bg_i", 0) + variant)
+        # each Reel starts a few scenes further on, and "New design" moves on again
+        start = (state.get("bg_i", 0) * 5 + variant * 3)
+        seconds = designer.render(durations, audio, out, start=start)
     caption = build_caption(item, reciter, text["reference"])
     msg_id = telegram.send_for_approval(
         out, f"New Reel ready: {text['reference']} · {reciter} · {seconds:.0f}s\n\n{caption}", item["id"])

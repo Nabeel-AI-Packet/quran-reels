@@ -17,8 +17,6 @@ if __name__ == "__main__":
         with tempfile.TemporaryDirectory() as tmp:
             audio = os.path.join(tmp, "a.mp3")
             durations = quran.fetch_audio(key, reciter, audio)
-            verse = {**text, "hook": text["reference"], "reciter": reciter,
-                     "reciter_ar": config.RECITERS[reciter]["ar"]}
             name = f"{key.replace(':', '_')}_{reciter.split()[0]}.mp4"
-            secs = designer.render(verse, durations, audio, os.path.join(OUT, name), background=int(bg))
-            print(name, f"{secs:.1f}s", "polish:", text["polish_list"][0][:60])
+            secs = designer.render(durations, audio, os.path.join(OUT, name), start=int(bg))
+            print(name, f"{secs:.1f}s", text["reference"])
