@@ -260,9 +260,11 @@
   {
     "id": "h01",
     "key": "59:22-24",
-    "status": "queued",
+    "status": "posted",
     "hook": "The Names of Allah",
     "caption_en": "He is Allah: the closing verses of Al-Hashr and His beautiful names.",
-    "caption_pl": "On jest Allahem: końcowe wersety Sury Al-Haszr i Jego piękne imiona."
+    "caption_pl": "On jest Allahem: końcowe wersety Sury Al-Haszr i Jego piękne imiona.",
+    "media_id": "{'instagram': '6b06d6d5d06905498b765487', 'tiktok': '6b06d6d7286553c59ff7ab29'}",
+    "posted_at": "2026-11-25T12:40:58.193301"
   }
 ]
