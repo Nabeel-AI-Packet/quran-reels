@@ -31,7 +31,7 @@ In the Instagram app, go to your profile → ☰ → **Account type and tools** 
 
 ## 4. Add the keys to GitHub
 
-Open github.com/Nabeel-AI-Packet/quran-reels in your browser with **Desktop site** turned on.
+Open github.com/nabeel-naseraldeen/quran-reels in your browser with **Desktop site** turned on.
 Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
 
 | Name | Value |

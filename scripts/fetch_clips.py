@@ -21,7 +21,7 @@ import requests
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "assets", "clips")
 INDEX = os.path.join(OUT, "clips.json")
-UA = {"User-Agent": "quran-reels/1.0 (github.com/Nabeel-AI-Packet/quran-reels)"}
+UA = {"User-Agent": "quran-reels/1.0 (github.com/nabeel-naseraldeen/quran-reels)"}
 
 COMMONS = ["waterfall", "ocean waves", "sea waves beach", "river stream", "mountains clouds timelapse",
            "clouds timelapse", "sunset timelapse", "sunrise", "forest", "rain drops", "lightning storm",
